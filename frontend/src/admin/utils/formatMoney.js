@@ -1,2 +1,9 @@
-const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-export const formatINR = (rupees) => inr.format(rupees);
+import { getStoreSettings } from '../config/settings';
+
+export function formatMoney(amount, settings = getStoreSettings()) {
+  return new Intl.NumberFormat(settings.locale, {
+    style: 'currency',
+    currency: settings.currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}

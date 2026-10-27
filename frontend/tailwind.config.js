@@ -11,7 +11,7 @@ export default {
       colors: {
         page: 'var(--c-page)', card: 'var(--c-card)', ink: 'var(--c-ink)', muted: 'var(--c-muted)',
         soft: 'var(--c-soft)', line: 'var(--c-line)', hair: 'var(--c-hair)', field: 'var(--c-field)',
-        brand: '#1f7a62', 'brand-dark': '#0f4c3d', 'brand-chart': '#1f6f5b', 'brand-chip': '#17614e',
+        brand: 'var(--c-brand)', 'brand-dark': 'var(--c-brand-strong)', 'brand-chart': 'var(--c-brand)', 'brand-chip': 'var(--c-brand-strong)',
         topbar: '#10231f', side: '#17332c', 'side-hover': '#21443a',
         gold: '#d9a441', 'gold-ink': '#2b1d00', danger: '#d92d20',
       },

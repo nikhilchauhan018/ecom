@@ -11,6 +11,10 @@
   --c-page: #f5f5f2; --c-card: #ffffff; --c-ink: #17181a; --c-muted: #5b5d62;
   --c-soft: #4a4c50; --c-line: #e4e4e0; --c-hair: #eeeeea; --c-field: #d9d9d4;
   --c-btn-bg: #17181a; --c-btn-fg: #ffffff; --c-btn-hover: #2d2f33;
+  --c-brand: #1f7a62; --c-brand-strong: #0f4c3d; --c-brand-contrast: #ffffff;
+  --c-success-bg: #e1f3ea; --c-success-ink: #14573f;
+  --c-warning-bg: #fbefd5; --c-warning-ink: #6b4a00;
+  --c-danger-bg: #fbe4e1; --c-danger-ink: #8a2217;
   --bs-body-font-family: Inter, system-ui, sans-serif;
   --bs-body-font-size: 14px;
 }
@@ -18,6 +22,10 @@
   --c-page: #0f1513; --c-card: #17201d; --c-ink: #eceeed; --c-muted: #a2a9a6;
   --c-soft: #c3c9c6; --c-line: #2a3531; --c-hair: #232d29; --c-field: #3a4843;
   --c-btn-bg: #eceeed; --c-btn-fg: #17181a; --c-btn-hover: #ffffff;
+  --c-brand: #4fc3a1; --c-brand-strong: #8be0c4; --c-brand-contrast: #10231f;
+  --c-success-bg: #173d31; --c-success-ink: #a4e8cc;
+  --c-warning-bg: #4a3917; --c-warning-ink: #f4d28a;
+  --c-danger-bg: #4b2420; --c-danger-ink: #ffb6ad;
   color-scheme: dark;
 }
 
@@ -25,8 +33,7 @@ body { margin: 0; background: var(--c-page); color: var(--c-ink); font-family: I
 h1, h2, h3, p { margin-bottom: 0; }
 /* Bootstrap underlines/recolours links; this app styles links explicitly */
 a, a:hover { color: inherit; text-decoration: none; }
-.link-brand, .link-brand:hover { color: #1f7a62; }
-:root[data-theme='dark'] .link-brand, :root[data-theme='dark'] .link-brand:hover { color: #4fc3a1; }
+.link-brand, .link-brand:hover { color: var(--c-brand); }
 .visually-hidden-input { position: absolute; left: -9999px; }
 :focus-visible { outline: 2px solid #d9a441; outline-offset: 2px; }
 .table > :not(caption) > * > * { background-color: transparent; color: inherit; box-shadow: none; }
@@ -37,3 +44,11 @@ a, a:hover { color: inherit; text-decoration: none; }
 
 .form-control::placeholder { color: var(--c-muted); opacity: 1; }
 .form-control:focus { color: inherit; }
+
+.print-hidden { display: block; }
+@media print {
+  .print-hidden, .admin-table button, .admin-table input { display: none !important; }
+  body { background: #ffffff; color: #000000; }
+  .tw-bg-card, .tw-bg-page { background: #ffffff !important; }
+  .tw-text-muted { color: #444444 !important; }
+}

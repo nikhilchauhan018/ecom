@@ -1,9 +1,24 @@
 export const navItems = [
   { label: 'Dashboard', icon: 'home', to: '/' },
   {
-    label: 'Ecommerce', icon: 'bag', badge: 48,
-    children: ['Orders', 'Products', 'Categories', 'Customers', 'Discounts', 'Returns', 'Reviews', 'Shipping', 'Notifications']
-      .map((label) => ({ label, to: `/ecommerce/${label.toLowerCase()}` })),
+    label: 'Ecommerce', icon: 'bag',
+    children: [
+      { label: 'Report', to: '/ecommerce/report' },
+      { label: 'Orders', to: '/ecommerce/orders', badge: { source: 'pendingOrdersCount' } },
+      { label: 'Incomplete Orders', to: '/ecommerce/incomplete-orders' },
+      { label: 'Order Returns', to: '/ecommerce/order-returns' },
+      { label: 'Shipments', to: '/ecommerce/shipments' },
+      { label: 'Invoices', to: '/ecommerce/invoices' },
+      { label: 'Products', to: '/ecommerce/products' },
+      { label: 'Product Prices', to: '/ecommerce/product-prices' },
+      { label: 'Product Inventory', to: '/ecommerce/product-inventory' },
+      { label: 'Categories', to: '/ecommerce/categories' },
+      { label: 'Customers', to: '/ecommerce/customers' },
+      { label: 'Discounts', to: '/ecommerce/discounts' },
+      { label: 'Reviews', to: '/ecommerce/reviews' },
+      { label: 'Shipping', to: '/ecommerce/shipping' },
+      { label: 'Notifications', to: '/ecommerce/notifications' },
+    ],
   },
   { label: 'Pages', icon: 'page', to: '/pages' },
   { label: 'Blog', icon: 'list', to: '/blog', chevron: true },

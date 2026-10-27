@@ -25,11 +25,11 @@ export const dashboardMock = {
     { actor: 'owner', text: 'logged in', when: '32 seconds ago' },
     { actor: 'system', text: 'created order', ref: '#1043', when: '5 minutes ago' },
     { actor: 'owner', text: 'updated product Linen shirt', when: '2 hours ago' },
-    { actor: 'system', text: 'received ₹2,498 via UPI', when: 'Yesterday' },
+    { actor: 'system', text: 'received payment via UPI', amount: 2498, when: 'Yesterday' },
     { actor: 'owner', text: 'changed password', when: '3 days ago' },
   ],
   notifications: [
-    { text: 'New order #1042 · ₹2,498', when: '2 min ago' },
+    { text: 'New order #1042', amount: 2498, when: '2 min ago' },
     { text: 'Payment failed · order #1038', when: '18 min ago' },
     { text: 'COD order to confirm · #1043', when: '1 hr ago' },
     { text: 'Return requested · #1039', when: '3 hrs ago' },

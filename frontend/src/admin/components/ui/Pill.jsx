@@ -1,9 +1,9 @@
 import Badge from 'react-bootstrap/Badge';
 
 const TONES = {
-  ok: 'tw-bg-[#e1f3ea] tw-text-[#14573f]',
-  wait: 'tw-bg-[#fbefd5] tw-text-[#6b4a00]',
-  bad: 'tw-bg-[#fbe4e1] tw-text-[#8a2217]',
+  ok: 'tw-bg-[var(--c-success-bg)] tw-text-[var(--c-success-ink)]',
+  wait: 'tw-bg-[var(--c-warning-bg)] tw-text-[var(--c-warning-ink)]',
+  bad: 'tw-bg-[var(--c-danger-bg)] tw-text-[var(--c-danger-ink)]',
 };
 
 export default function Pill({ tone = 'ok', children }) {

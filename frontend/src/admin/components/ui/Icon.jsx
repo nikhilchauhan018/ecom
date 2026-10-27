@@ -8,6 +8,13 @@ const PATHS = {
   help: 'M12 17v.01M9.5 9a2.5 2.5 0 115 0c0 2-2.5 2-2.5 4', folder: 'M3 6h6l2 2h10v11H3z',
   brush: 'M4 20c0-3 2-4 4-4l9-9 3 3-9 9c0 2-1 4-7 4', wrench: 'M14 6a4 4 0 005 5l-9 9-3-3 9-9',
   cog: 'M12 9a3 3 0 100 6 3 3 0 000-6zM12 2v3M12 19v3M2 12h3M19 12h3', chevron: 'M6 9l6 6 6-6',
+  search: 'M11 4a7 7 0 105.3 11.6L21 20.3M18 18l3 3', plus: 'M12 5v14M5 12h14',
+  refresh: 'M20 11a8 8 0 00-14.9-3M4 5v4h4M4 13a8 8 0 0014.9 3M20 19v-4h-4',
+  download: 'M12 3v12M7 10l5 5 5-5M5 21h14', filter: 'M4 5h16M7 12h10M10 19h4',
+  edit: 'M4 20h4L19 9l-4-4L4 16v4M13.5 6.5l4 4', trash: 'M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3v13H8z',
+  clock: 'M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0', check: 'M5 12l4 4L19 6',
+  box: 'M4 7l8-4 8 4v10l-8 4-8-4V7zM4 7l8 4 8-4M12 11v10', truck: 'M3 6h11v10H3zM14 10h4l3 3v3h-7zM7 19a2 2 0 100-4 2 2 0 000 4M18 19a2 2 0 100-4 2 2 0 000 4',
+  close: 'M6 6l12 12M18 6L6 18', arrowUp: 'M12 19V5M6 11l6-6 6 6', arrowDown: 'M12 5v14M18 13l-6 6-6-6',
 };
 
 export default function Icon({ name, size = 20, ...rest }) {
