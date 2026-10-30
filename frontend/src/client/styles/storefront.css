@@ -1,0 +1,44 @@
+@import './tokens.css';
+@import './base.css';
+
+/* Arch card shape: top fully rounded, bottom 16px radius */
+.card-arch {
+  border-top-left-radius: 9999px;
+  border-top-right-radius: 9999px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  aspect-ratio: 1 / 1.2;
+  overflow: hidden;
+}
+
+/* Stagger offset for second column */
+@media (max-width: 820px) {
+  .stagger-col-2 {
+    margin-top: 24px;
+  }
+}
+
+/* Hero clamp height */
+.hero-container {
+  height: clamp(380px, 60vh, 520px);
+  border-bottom-left-radius: var(--hero-radius);
+  border-bottom-right-radius: var(--hero-radius);
+}
+
+/* Safe area padding for bottom bar on mobile */
+.pb-bottom-bar {
+  padding-bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 16px) + 24px);
+}
+
+/* Desktop screen enhancements (1024px+) */
+@media (min-width: 1024px) {
+  .pb-bottom-bar {
+    padding-bottom: 0px;
+  }
+
+  .hero-container {
+    height: clamp(460px, 62vh, 600px);
+    border-bottom-left-radius: 40px;
+    border-bottom-right-radius: 40px;
+  }
+}

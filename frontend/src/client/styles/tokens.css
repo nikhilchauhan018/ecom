@@ -1,0 +1,39 @@
+:root {
+  --c-page: #ffffff;
+  --c-card: #f8f8f6;
+  --c-ink: #17181a;
+  --c-muted: #6b6e74;
+  --c-soft: #8e9299;
+  --c-line: #e6e6e2;
+  --c-hair: #f0f0ec;
+  --c-field: #ebebe7;
+
+  /* White-label brand tokens injected dynamically by useSettings or root */
+  --brand: #17332c;
+  --brand-contrast: #ffffff;
+  --brand-tint: rgba(23, 51, 44, 0.1);
+  --brand-hover: #21443a;
+
+  /* Accent & status tokens */
+  --c-badge-sale-bg: #fde8e7;
+  --c-badge-sale-fg: #981b1b;
+  --c-badge-low-bg: #fef3c7;
+  --c-badge-low-fg: #92400e;
+
+  /* Layout and dimensions */
+  --hero-radius: 28px;
+  --arch-radius-top: 9999px;
+  --arch-radius-bottom: 16px;
+  --bottom-bar-height: 64px;
+}
+
+:root[data-theme='dark'] {
+  --c-page: #101211;
+  --c-card: #181c1a;
+  --c-ink: #f2f4f3;
+  --c-muted: #9aa09d;
+  --c-soft: #6f7572;
+  --c-line: #262c29;
+  --c-hair: #1e2421;
+  --c-field: #2d3531;
+}
