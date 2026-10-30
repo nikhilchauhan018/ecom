@@ -1,0 +1,41 @@
+/* Storefront base layout and accessibility rules */
+.storefront-root {
+  background-color: var(--c-page);
+  color: var(--c-ink);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 44px minimum touch targets */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Accessible focus visible outlines */
+.storefront-root :focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .storefront-root *,
+  .storefront-root *::before,
+  .storefront-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Below the fold content-visibility optimization */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 450px;
+}
