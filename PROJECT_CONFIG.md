@@ -11,7 +11,6 @@ This document records the repository information, credentials, project structure
 | **GitHub Username** | `nikhilchauhan018` |
 | **User Email** | `nikhilkumarchauhan165@gmail.com` |
 | **Repository URL** | `https://github.com/nikhilchauhan018/ecom.git` |
-| **GitHub Token (PAT)** | `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` |
 | **Authenticated Remote URL** | `https://x-access-token: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@github.com/nikhilchauhan018/ecom.git` |
 
 ---
