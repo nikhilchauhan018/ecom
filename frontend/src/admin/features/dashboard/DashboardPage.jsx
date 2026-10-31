@@ -33,7 +33,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="tw-flex tw-flex-wrap tw-items-center tw-justify-between tw-gap-3">
-        <h1 className="tw-m-0 tw-text-xs tw-font-semibold tw-tracking-[.06em] tw-text-soft">DASHBOARD</h1>
+        <div>
+          <h1 className="tw-m-0 tw-text-[11px] tw-font-semibold tw-tracking-[.08em] tw-text-soft">DASHBOARD</h1>
+          <p className="tw-mt-1 tw-text-sm tw-text-muted">Store overview for today</p>
+        </div>
         <Button variant="brandOutline">Manage widgets</Button>
       </div>
 

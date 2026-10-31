@@ -3,8 +3,8 @@ import Card from '../../../components/ui/Card';
 import Pill from '../../../components/ui/Pill';
 import { formatMoney } from '../../../utils/formatMoney';
 
-const th = 'tw-text-xs tw-font-medium tw-text-muted';
-const td = 'tw-whitespace-nowrap';
+const th = 'tw-text-[11px] tw-font-semibold tw-uppercase tw-tracking-[0.06em] tw-text-muted';
+const td = 'tw-whitespace-nowrap tw-align-middle';
 
 export default function RecentOrders({ orders }) {
   return (
@@ -16,8 +16,11 @@ export default function RecentOrders({ orders }) {
         <tbody>
           {orders.map((o) => (
             <tr key={o.id}>
-              <td className={td}>#{o.id}</td><td className={td}>{o.customer}</td><td className={td}>{o.items}</td>
-              <td className={td}>{formatMoney(o.total)}</td><td className={td}>{o.payment}</td>
+              <td className={td}>#{o.id}</td>
+              <td className={td}>{o.customer}</td>
+              <td className={td}>{o.items}</td>
+              <td className={td}>{formatMoney(o.total)}</td>
+              <td className={td}>{o.payment}</td>
               <td className={td}><Pill tone={o.tone}>{o.status}</Pill></td>
             </tr>
           ))}

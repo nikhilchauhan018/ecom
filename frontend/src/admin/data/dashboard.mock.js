@@ -2,14 +2,14 @@
 // (GET /api/v1/admin/dashboard/summary) so only the data source changes later. Money in rupees.
 export const dashboardMock = {
   tiles: [
-    { label: 'Orders', value: 312, color: '#1f7a62' },
-    { label: 'Products', value: 412, color: '#0f4c3d' },
-    { label: 'Customers', value: 286, color: '#9a4d1a' },
-    { label: 'Reviews', value: 12, color: '#2c3a6b' },
+    { label: 'Gross revenue', value: '₹8.4L', delta: '+12.4%', trend: 'up', subtitle: 'vs last month', color: '#1f7a62' },
+    { label: 'Orders', value: 312, delta: '+18%', trend: 'up', subtitle: 'this week', color: '#0f4c3d' },
+    { label: 'Returning buyers', value: 286, delta: '+9%', trend: 'up', subtitle: 'active customers', color: '#9a4d1a' },
+    { label: 'Pending reviews', value: 12, delta: '-3%', trend: 'down', subtitle: 'needs action', color: '#2c3a6b' },
   ],
   salesByDay: [
-    { day: 'Mon', pct: 52 }, { day: 'Tue', pct: 44 }, { day: 'Wed', pct: 61 }, { day: 'Thu', pct: 58 },
-    { day: 'Fri', pct: 76 }, { day: 'Sat', pct: 100 }, { day: 'Sun', pct: 84 },
+    { day: 'Mon', pct: 48 }, { day: 'Tue', pct: 56 }, { day: 'Wed', pct: 64 }, { day: 'Thu', pct: 58 },
+    { day: 'Fri', pct: 72 }, { day: 'Sat', pct: 100 }, { day: 'Sun', pct: 88 },
   ],
   todo: [
     { label: 'Orders to pack', count: 6 }, { label: 'COD orders to confirm', count: 4 },

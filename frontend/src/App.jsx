@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
 import AppRoutes from './admin/routes/AppRoutes';
 import StoreRoutes from './client/routes/StoreRoutes';
 import ErrorBoundary from './admin/components/common/ErrorBoundary';
@@ -19,7 +19,7 @@ function ViewSwitcher() {
       className="tw-fixed tw-bottom-20 tw-right-4 tw-z-50 print-hidden"
     >
       <Link
-        to={isAdmin ? '/' : '/admin'}
+        to={isAdmin ? '/' : '/ecommerce'}
         className="tw-flex tw-items-center tw-gap-2 tw-px-3.5 tw-py-2 tw-rounded-full tw-bg-[#17181a] tw-text-white tw-shadow-xl tw-text-xs tw-font-semibold hover:tw-opacity-95 tw-transition-all tw-border tw-border-white/20"
       >
         <span
@@ -39,7 +39,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Admin Back-Office Routes */}
-          <Route path="/admin/*" element={<AppRoutes />} />
+          <Route path="/admin/*" element={<Navigate to="/ecommerce" replace />} />
           <Route path="/ecommerce/*" element={<AppRoutes />} />
 
           {/* Customer-Facing Storefront Routes */}

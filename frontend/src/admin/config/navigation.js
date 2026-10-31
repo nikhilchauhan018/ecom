@@ -1,5 +1,5 @@
 export const navItems = [
-  { label: 'Dashboard', icon: 'home', to: '/' },
+  { label: 'Dashboard', icon: 'home', to: '/ecommerce' },
   {
     label: 'Ecommerce', icon: 'bag',
     children: [

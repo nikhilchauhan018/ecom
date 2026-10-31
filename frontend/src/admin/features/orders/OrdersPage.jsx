@@ -95,7 +95,7 @@ export default function OrdersPage() {
   };
 
   return <div className="tw-flex tw-flex-col tw-gap-5">
-    <div><div className="tw-text-xs tw-uppercase tw-tracking-[0.12em]"><a href="/" className="link-brand">Dashboard</a><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Ecommerce</span><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Orders</span></div><h1 className="tw-mt-2 tw-text-2xl tw-font-semibold">Orders</h1></div>
+    <div><div className="tw-text-xs tw-uppercase tw-tracking-[0.12em]"><a href="/ecommerce" className="link-brand">Dashboard</a><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Ecommerce</span><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Orders</span></div><h1 className="tw-mt-2 tw-text-2xl tw-font-semibold">Orders</h1></div>
     <Card>
       <OrderToolbar selectedCount={selected.length} search={searchInput} onSearch={setSearchInput} onFilter={() => setShowFilters((value) => !value)} onReload={load} loading={loading} onExport={exportOrders} onBulkAction={bulkAction} onCreate={() => navigate('/ecommerce/orders/create')} />
       {showFilters && <OrderFilters filters={draftFilters} methods={paymentMethods} onChange={updateFilter} onApply={applyFilters} onReset={resetFilters} />}

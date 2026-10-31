@@ -27,30 +27,30 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="ecommerce/orders" element={<OrdersPage />} />
-          <Route path="ecommerce/orders/create" element={<OrderFormPage />} />
-          <Route path="ecommerce/orders/:id" element={<OrderDetailPage />} />
-          <Route path="ecommerce/orders/:id/edit" element={<OrderFormPage />} />
-          <Route path="ecommerce/report" element={<ComingSoonPage />} />
-          <Route path="ecommerce/incomplete-orders" element={<ComingSoonPage />} />
-          <Route path="ecommerce/order-returns" element={<ReturnsPage />} />
-          <Route path="ecommerce/shipments" element={<ShipmentsPage />} />
-          <Route path="ecommerce/invoices" element={<InvoicesPage />} />
-          <Route path="ecommerce/invoices/:id/edit" element={<InvoiceDetailPage />} />
-          <Route path="ecommerce/products" element={<ProductsPage />} />
-          <Route path="ecommerce/products/create" element={<ProductFormPage />} />
-          <Route path="ecommerce/products/:id/edit" element={<ProductFormPage />} />
-          <Route path="ecommerce/products/:id" element={<Navigate to="edit" replace />} />
-          <Route path="ecommerce/product-prices" element={<ComingSoonPage />} />
-          <Route path="ecommerce/product-inventory" element={<ProductInventoryPage />} />
-          <Route path="ecommerce/categories" element={<CategoriesPage />} />
-          <Route path="ecommerce/categories/create" element={<CategoryFormPage />} />
-          <Route path="ecommerce/categories/:id/edit" element={<CategoryFormPage />} />
-          <Route path="ecommerce/customers" element={<CustomersPage />} />
-          <Route path="ecommerce/discounts" element={<DiscountsPage />} />
-          <Route path="ecommerce/reviews" element={<ReviewsPage />} />
-          <Route path="ecommerce/shipping" element={<ShippingPage />} />
-          <Route path="ecommerce/notifications" element={<ComingSoonPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/create" element={<OrderFormPage />} />
+          <Route path="orders/:id" element={<OrderDetailPage />} />
+          <Route path="orders/:id/edit" element={<OrderFormPage />} />
+          <Route path="report" element={<ComingSoonPage />} />
+          <Route path="incomplete-orders" element={<ComingSoonPage />} />
+          <Route path="order-returns" element={<ReturnsPage />} />
+          <Route path="shipments" element={<ShipmentsPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
+          <Route path="invoices/:id/edit" element={<InvoiceDetailPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="products/create" element={<ProductFormPage />} />
+          <Route path="products/:id/edit" element={<ProductFormPage />} />
+          <Route path="products/:id" element={<Navigate to="edit" replace />} />
+          <Route path="product-prices" element={<ComingSoonPage />} />
+          <Route path="product-inventory" element={<ProductInventoryPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="categories/create" element={<CategoryFormPage />} />
+          <Route path="categories/:id/edit" element={<CategoryFormPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="discounts" element={<DiscountsPage />} />
+          <Route path="reviews" element={<ReviewsPage />} />
+          <Route path="shipping" element={<ShippingPage />} />
+          <Route path="notifications" element={<ComingSoonPage />} />
           <Route path="*" element={<ComingSoonPage />} />
         </Route>
       </Routes>
