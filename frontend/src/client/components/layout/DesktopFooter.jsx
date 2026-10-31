@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useSettings } from '../../hooks/useSettings';
 import { useT } from '../../hooks/useT';
+import { safeHttpUrl } from '../../utils/safeUrl';
 
 /**
  * Responsive Desktop Footer (rendered on lg: breakpoints and above).
@@ -81,7 +82,7 @@ export function DesktopFooter() {
               {settings.social && settings.social.map((item, idx) => (
                 <a
                   key={idx}
-                  href={item.url}
+                  href={safeHttpUrl(item.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="tw-px-3 tw-py-1.5 tw-rounded-full tw-bg-white tw-border tw-border-[var(--c-hair)] tw-text-xs tw-font-medium tw-text-ink hover:tw-bg-[var(--brand)] hover:tw-text-[var(--brand-contrast)] tw-transition-colors"

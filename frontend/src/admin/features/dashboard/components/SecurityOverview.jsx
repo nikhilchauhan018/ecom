@@ -21,7 +21,10 @@ export default function SecurityOverview({ data }) {
 
   return (
     <section aria-label="Security">
-      <h2 className="tw-mb-[14px] tw-text-[15px] tw-font-semibold">Security</h2>
+      <div className="tw-mb-[14px] tw-flex tw-items-center tw-gap-2">
+        <h2 className="tw-text-[15px] tw-font-semibold">Security</h2>
+        <span className="tw-rounded-full tw-bg-page tw-px-2 tw-py-0.5 tw-text-[11px] tw-font-medium tw-text-muted">Demo data</span>
+      </div>
       <div className="tw-grid tw-grid-cols-1 tw-gap-4 lg:tw-grid-cols-3">
         {cols.map(([title, rows]) => (
           <Card key={title} title={title}>

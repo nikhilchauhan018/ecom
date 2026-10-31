@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes, Link, Navigate, useLocation } from 'react-router-dom';
-import AppRoutes from './admin/routes/AppRoutes';
+
 import StoreRoutes from './client/routes/StoreRoutes';
 import ErrorBoundary from './admin/components/common/ErrorBoundary';
 
+// Admin code is loaded only when an /ecommerce route is visited.
+const AppRoutes = lazy(() => import('./admin/routes/AppRoutes'));
+
 /**
- * Floating mode switcher allowing easy toggle between Storefront and Admin Ops in development.
+ * Floating mode switcher allowing easy toggle between Storefront and Admin Ops.
+ * Rendered in development only so it never ships to storefront visitors.
  */
 function ViewSwitcher() {
   const location = useLocation();
@@ -40,12 +44,19 @@ export default function App() {
         <Routes>
           {/* Admin Back-Office Routes */}
           <Route path="/admin/*" element={<Navigate to="/ecommerce" replace />} />
-          <Route path="/ecommerce/*" element={<AppRoutes />} />
+          <Route
+            path="/ecommerce/*"
+            element={(
+              <Suspense fallback={<div className="tw-p-6 tw-text-muted">Loading…</div>}>
+                <AppRoutes />
+              </Suspense>
+            )}
+          />
 
           {/* Customer-Facing Storefront Routes */}
           <Route path="/*" element={<StoreRoutes />} />
         </Routes>
-        <ViewSwitcher />
+        {import.meta.env.DEV && <ViewSwitcher />}
       </BrowserRouter>
     </ErrorBoundary>
   );

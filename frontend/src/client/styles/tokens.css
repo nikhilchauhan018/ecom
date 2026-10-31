@@ -15,6 +15,10 @@
   --brand-hover: #21443a;
 
   /* Accent & status tokens */
+  --c-success: #1f7a5a;
+  --c-success-tint: #e3f1ec;
+  --c-danger: #b42318;
+  --c-avatar-bg: #d9e3df;
   --c-badge-sale-bg: #fde8e7;
   --c-badge-sale-fg: #981b1b;
   --c-badge-low-bg: #fef3c7;
