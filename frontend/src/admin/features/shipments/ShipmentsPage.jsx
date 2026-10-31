@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Pill from '../../components/ui/Pill';
 import { listShipments } from '../../services/api/shipments';
+import { safeHttpUrl } from '../../utils/safeUrl';
 import { shipmentStatusLabel, shipmentStatusTone, SHIPMENT_STATUS_LABELS } from './shipmentUtils';
 
 export default function ShipmentsPage() {
@@ -70,7 +71,7 @@ export default function ShipmentsPage() {
             <td>{shipment.orderNumber}</td>
             <td><div>{shipment.customer.name}</div><div className="tw-text-xs tw-text-muted">{shipment.customer.email}</div></td>
             <td>{shipment.courier}</td>
-            <td><a className="link-brand" href={shipment.trackingUrl} target="_blank" rel="noreferrer">{shipment.trackingNumber}</a></td>
+            <td><a className="link-brand" href={safeHttpUrl(shipment.trackingUrl)} target="_blank" rel="noreferrer">{shipment.trackingNumber}</a></td>
             <td>{shipment.itemCount}</td>
             <td><Pill tone={shipmentStatusTone(shipment.status)}>{shipmentStatusLabel(shipment.status)}</Pill></td>
           </tr>)}</tbody>

@@ -9,6 +9,7 @@ import { ORDER_STATUSES } from './orderStatus';
 import { addOrderNote, deleteOrder, getOrder, refundOrder, updateOrder, updateOrderStatus } from '../../services/api/orders';
 import { formatMoney } from '../../utils/formatMoney';
 import { getStoreSettings } from '../../config/settings';
+import { safeHttpUrl } from '../../utils/safeUrl';
 
 const settings = getStoreSettings();
 const emptyAddress = { name: '', line1: '', city: '', region: '', postalCode: '', country: '' };
@@ -102,7 +103,7 @@ export default function OrderDetailPage() {
         <AddressCard title="Shipping address" value={order.shippingAddress} onEdit={() => editAddress('shippingAddress')} />
         <AddressCard title="Billing address" value={order.billingAddress} onEdit={() => editAddress('billingAddress')} />
         <Card title="Payment"><p>{order.paymentMethod.label}</p><p className="tw-capitalize tw-text-muted">Status: {order.paymentStatus.replace('_', ' ')}</p><p className="tw-text-muted">Transaction: TX-{order.id}</p><Button variant="brandOutline" onClick={() => setRefundOpen(true)}>Refund payment</Button></Card>
-        <InfoCard title="Delivery"><p>{order.delivery.courier}</p><p className="tw-text-muted">Tracking: {order.delivery.trackingNumber}</p><a className="link-brand" href={order.delivery.trackingUrl} target="_blank" rel="noreferrer">Track shipment</a><p className="tw-mt-1 tw-text-muted">Estimated {order.delivery.estimatedDate}</p></InfoCard>
+        <InfoCard title="Delivery"><p>{order.delivery.courier}</p><p className="tw-text-muted">Tracking: {order.delivery.trackingNumber}</p><a className="link-brand" href={safeHttpUrl(order.delivery.trackingUrl)} target="_blank" rel="noreferrer">Track shipment</a><p className="tw-mt-1 tw-text-muted">Estimated {order.delivery.estimatedDate}</p></InfoCard>
         <Card><Button variant="brandOutline" onClick={() => setMessage('Confirmation resent.')}>Resend confirmation</Button><Button variant="brandOutline tw-ml-2" onClick={remove}>Delete order</Button></Card>
       </div>
     </div>

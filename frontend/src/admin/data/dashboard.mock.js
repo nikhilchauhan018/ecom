@@ -49,6 +49,8 @@ export const dashboardMock = {
     ['Finance', 'Payouts, tax reports, expenses, profit by product, refund ledger, CSV export.'],
     ['Storefront', 'Homepage banners, menus, lookbooks, pages, reviews moderation, announcement bar.'],
   ],
+  // TODO: DEMO DATA ONLY. None of these protections are implemented yet.
+  // Replace with real state from the backend once auth exists, or remove the card.
   security: {
     access: [
       { label: 'Two-factor sign-in', kind: 'switch' },

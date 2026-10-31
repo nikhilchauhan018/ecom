@@ -18,6 +18,11 @@
   }
 }
 
+/* Native <dialog> backdrop */
+.sf-dialog::backdrop {
+  background: rgba(16, 18, 17, 0.5);
+}
+
 /* Hero clamp height */
 .hero-container {
   height: clamp(380px, 60vh, 520px);

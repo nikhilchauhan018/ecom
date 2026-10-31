@@ -7,6 +7,17 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Tailwind preflight is disabled (Bootstrap's Reboot is the reset), so `tw-border*`
+ * utilities would have a width but no style and never render. This restores the
+ * preflight border baseline. :where() keeps specificity at 0 so any utility still wins.
+ */
+:where(.storefront-root, .storefront-root *, .storefront-root *::before, .storefront-root *::after) {
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--c-line);
+}
+
 /* 44px minimum touch targets */
 .touch-target {
   min-width: 44px;

@@ -8,6 +8,7 @@ import OrdersTable from './components/OrdersTable';
 import OrderCards from './components/OrderCards';
 import { listOrders } from '../../services/api/orders';
 import { paymentMethods } from '../../data/orders.mock';
+import { escapeCsvCell } from '../products/productUtils';
 
 const initialFilters = { status: '', paymentStatus: '', paymentMethod: '', dateFrom: '', dateTo: '', amountMin: '', amountMax: '', customer: '' };
 const filterKeys = Object.keys(initialFilters);
@@ -78,7 +79,7 @@ export default function OrdersPage() {
   });
   const exportOrders = (format) => {
     const rows = selected.length ? orders.filter((item) => selected.includes(item.id)) : orders;
-    const csv = [['ID', 'Customer', 'Email', 'Amount', 'Payment status', 'Status'], ...rows.map((item) => [item.number, item.customer.name, item.customer.email, item.amounts.total, item.paymentStatus, item.status])].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+    const csv = [['ID', 'Customer', 'Email', 'Amount', 'Payment status', 'Status'], ...rows.map((item) => [item.number, item.customer.name, item.customer.email, item.amounts.total, item.paymentStatus, item.status])].map((row) => row.map(escapeCsvCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
