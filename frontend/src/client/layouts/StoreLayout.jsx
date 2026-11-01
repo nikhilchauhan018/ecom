@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { SkipLink } from '../components/common/SkipLink';
 import { DesktopHeader } from '../components/layout/DesktopHeader';
 import { DesktopFooter } from '../components/layout/DesktopFooter';
@@ -13,7 +13,9 @@ import '../styles/storefront.css';
  * and BottomTabBar on mobile.
  */
 export function StoreLayout() {
+  const location = useLocation();
   useSettings();
+  const isProductPage = location.pathname.startsWith('/product/');
 
   return (
     <div className="storefront-root tw-min-h-screen tw-flex tw-flex-col tw-relative tw-bg-[var(--c-page)] tw-text-[var(--c-ink)]">
@@ -23,7 +25,7 @@ export function StoreLayout() {
         <Outlet />
       </main>
       <DesktopFooter />
-      <BottomTabBar />
+      {!isProductPage && <BottomTabBar />}
     </div>
   );
 }

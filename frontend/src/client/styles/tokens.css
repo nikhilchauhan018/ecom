@@ -7,6 +7,13 @@
   --c-line: #e6e6e2;
   --c-hair: #f0f0ec;
   --c-field: #ebebe7;
+  --surface: var(--c-page);
+  --surface-raised: var(--c-card);
+  --ink: var(--c-ink);
+  --muted: var(--c-muted);
+  --line: var(--c-line);
+  --hairline: var(--c-hair);
+  --field: var(--c-field);
 
   /* White-label brand tokens injected dynamically by useSettings or root */
   --brand: #17332c;

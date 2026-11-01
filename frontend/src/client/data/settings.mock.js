@@ -7,6 +7,7 @@ export const mockSettings = {
   brandColor: '#17332c',
   currency: 'USD',
   locale: 'en-US',
+  currencyDisplay: 'narrowSymbol',
   supportPhone: '+1 (800) 555-0199',
   logo: {
     src: null,

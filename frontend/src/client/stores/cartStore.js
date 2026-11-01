@@ -57,19 +57,27 @@ export const cartStore = {
     return cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
   },
 
-  addItem(productId, quantity = 1) {
+  addItem(productId, quantity = 1, options = {}) {
     initFromStorage();
     const strId = String(productId);
     const existingIndex = cartItems.findIndex((item) => item.id === strId);
     if (existingIndex > -1) {
       cartItems = cartItems.map((item, idx) =>
         idx === existingIndex
-          ? { ...item, quantity: item.quantity + quantity }
+          ? { ...item, quantity: item.quantity + quantity, ...options }
           : item
       );
     } else {
-      cartItems = [...cartItems, { id: strId, quantity }];
+      cartItems = [...cartItems, { id: strId, quantity, ...options }];
     }
+    persist();
+    notify();
+  },
+
+  updateQuantity(productId, quantity) {
+    initFromStorage();
+    const nextQuantity = Math.max(1, Math.min(10, Number(quantity) || 1));
+    cartItems = cartItems.map((item) => item.id === String(productId) ? { ...item, quantity: nextQuantity } : item);
     persist();
     notify();
   },

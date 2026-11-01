@@ -24,6 +24,7 @@
  * @property {string} brandColor
  * @property {string} currency
  * @property {string} locale
+ * @property {'symbol'|'narrowSymbol'|'code'} [currencyDisplay]
  * @property {string} supportPhone
  * @property {SEO} seo
  * @property {SocialLink[]} social

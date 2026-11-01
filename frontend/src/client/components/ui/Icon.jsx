@@ -192,6 +192,12 @@ export function Icon({ name, size = 20, className = '', filled = false, ...rest 
           <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
       );
+    case 'minus':
+      return (
+        <svg {...commonProps}>
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      );
     case 'pencil':
       return (
         <svg {...commonProps}>

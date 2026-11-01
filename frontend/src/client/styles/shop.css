@@ -1,0 +1,71 @@
+.sf-shop-page { max-width: 1280px; margin-inline: auto; padding: 32px 20px 96px; color: var(--ink); }
+.sf-shop-header { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-block-end: 20px; }
+.sf-eyebrow { color: var(--brand); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 6px; }
+.sf-shop-header h1 { margin: 0; font-size: clamp(26px, 4vw, 40px); }
+.sf-toolbar { display: flex; align-items: center; gap: 10px; }
+.sf-filter-trigger, .sf-sort select, .sf-load-more { min-height: 44px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 0 14px; font: inherit; }
+.sf-filter-trigger { border-color: var(--brand); color: var(--brand); font-weight: 700; }
+.sf-sort { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.sf-sort select { min-width: 150px; }
+.sf-applied-row { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block-end: 18px; }
+.sf-applied-chip, .sf-clear-inline { border: 1px solid var(--line); background: var(--surface-raised); color: var(--ink); border-radius: 999px; min-height: 36px; padding: 0 12px; }
+.sf-clear-inline { border: 0; color: var(--brand); background: transparent; font-weight: 700; }
+.sf-shop-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; }
+.sf-results { min-width: 0; }
+.sf-result-count { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
+.sf-product-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 16px; }
+.sf-skeleton { aspect-ratio: 4 / 5; border-radius: 8px; background: var(--field); }
+.sf-empty { border-block: 1px solid var(--line); padding: 64px 20px; text-align: center; }
+.sf-empty h2 { margin: 0 0 8px; }
+.sf-empty p, .sf-hint { color: var(--muted); }
+.sf-load-more { display: block; margin: 28px auto 0; border-color: var(--brand); color: var(--brand); font-weight: 700; }
+.sf-filter-sidebar { border-inline-end: 1px solid var(--line); padding-inline-end: 20px; }
+.sf-filter-section { border-block-end: 1px solid var(--line); padding-block: 16px; }
+.sf-section-button { width: 100%; min-height: 44px; display: flex; justify-content: space-between; align-items: center; border: 0; background: transparent; color: var(--ink); padding: 0; font: inherit; text-align: start; }
+.sf-section-content { padding-block-start: 10px; }
+.sf-applied { display: flex; justify-content: space-between; font-size: 13px; }
+.sf-applied button, .sf-sheet-header button { border: 0; background: transparent; color: var(--brand); font: inherit; font-weight: 700; }
+.sf-choice-list { display: grid; gap: 2px; }
+.sf-choice { min-height: 40px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.sf-choice small { margin-inline-start: auto; color: var(--muted); }
+.sf-choice input { appearance: none; flex: 0 0 20px; width: 20px; height: 20px; margin: 0; border: 1px solid var(--muted); border-radius: 3px; background: var(--surface); }
+.sf-choice input:checked { border-color: var(--brand); background: var(--brand); box-shadow: inset 0 0 0 4px var(--surface); }
+.sf-see-more { border: 0; background: transparent; color: var(--brand); font-weight: 700; padding: 8px 0; text-align: start; text-decoration: underline; }
+.sf-chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.sf-chip { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); }
+.sf-chip.is-selected { border-color: var(--brand); background: var(--brand-tint); color: var(--brand); font-weight: 700; }
+.sf-chip:disabled { opacity: .45; }
+.sf-range-label, .sf-price-fields { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.sf-dual-range { position: relative; height: 44px; margin-block: 4px; }
+.sf-range-track { position: absolute; inset-inline: 0; top: 50%; height: 5px; transform: translateY(-50%); border-radius: 999px; background: linear-gradient(to right, var(--line) 0%, var(--line) var(--range-start), var(--brand) var(--range-start), var(--brand) var(--range-end), var(--line) var(--range-end), var(--line) 100%); }
+.sf-dual-range label { position: absolute; inset: 0; }
+.sf-dual-range input { position: absolute; inset: 0; width: 100%; height: 44px; margin: 0; appearance: none; background: transparent; pointer-events: none; }
+.sf-dual-range input::-webkit-slider-runnable-track { height: 5px; background: transparent; }
+.sf-dual-range input::-moz-range-track { height: 5px; background: transparent; }
+.sf-dual-range input::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -8px; appearance: none; border: 2px solid var(--brand); border-radius: 50%; background: var(--surface); box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 20%, transparent); pointer-events: auto; cursor: grab; }
+.sf-dual-range input::-moz-range-thumb { width: 18px; height: 18px; border: 2px solid var(--brand); border-radius: 50%; background: var(--surface); box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 20%, transparent); pointer-events: auto; cursor: grab; }
+.sf-price-fields { margin-top: 8px; }
+.sf-price-fields label { min-width: 0; flex: 1; display: flex; align-items: center; gap: 6px; }
+.sf-price-fields input { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--ink); padding: 0 8px; }
+.sf-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sf-colors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.sf-color { border: 0; background: transparent; color: var(--ink); padding: 0; font-size: 12px; }
+.sf-color span { display: block; width: 34px; height: 34px; margin: 0 auto 4px; border-radius: 50%; background: var(--swatch); border: 2px solid var(--surface); outline: 1px solid var(--line); }
+.sf-color.is-selected span { outline: 2px solid var(--brand); }
+.sf-switch { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+.sf-switch input { appearance: none; flex: 0 0 44px; width: 44px; height: 24px; margin: 0; border: 1px solid var(--muted); border-radius: 999px; background: var(--field); transition: background-color .15s ease, border-color .15s ease; }
+.sf-switch input:checked { border-color: var(--brand); background: var(--brand); }
+.sf-sheet-backdrop { position: fixed; inset: 0; z-index: 60; background: color-mix(in srgb, var(--ink) 45%, transparent); }
+.sf-filter-sheet { position: absolute; inset: 0; overflow: auto; background: var(--surface); padding-block-end: 82px; }
+.sf-sheet-header { position: sticky; top: 0; z-index: 1; min-height: 56px; display: flex; justify-content: space-between; align-items: center; border-block-end: 1px solid var(--line); background: var(--surface); padding: 0 16px; }
+.sf-sheet-header h2 { font-size: 20px; margin: 0; }
+.sf-filter-content { max-width: 640px; margin-inline: auto; }
+.sf-filter-footer { position: fixed; inset-inline: 0; bottom: 0; display: flex; gap: 12px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--surface); border-block-start: 1px solid var(--line); }
+.sf-live-region { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.sf-clear-button, .sf-apply-button { min-height: 48px; border-radius: 6px; font: inherit; font-weight: 700; }
+.sf-clear-button { flex: 1; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.sf-apply-button { flex: 2; border: 1px solid var(--brand); background: var(--brand); color: var(--brand-contrast); }
+.sf-apply-button:disabled { opacity: .55; }
+@media (min-width: 1024px) { .sf-filter-sheet { display: none; } }
+@media (max-width: 1023px) { .sf-shop-layout { display: block; } .sf-filter-sidebar { display: none; } }
+@media (max-width: 600px) { .sf-shop-page { padding: 24px 16px 96px; } .sf-shop-header { align-items: start; flex-direction: column; } .sf-toolbar { width: 100%; } .sf-filter-trigger, .sf-sort { flex: 1; } .sf-sort select { min-width: 0; width: 100%; } .sf-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; } }
