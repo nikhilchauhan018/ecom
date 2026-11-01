@@ -3,6 +3,10 @@ import { Route, Routes } from 'react-router-dom';
 import StoreLayout from '../layouts/StoreLayout';
 import HomePage from '../features/home/HomePage';
 import RequireAuth from '../features/auth/RequireAuth';
+import ShopPage from '../features/shop/ShopPage';
+import ProductPage from '../features/product/ProductPage';
+import CartPage from '../features/cart/CartPage';
+import CheckoutPage from '../features/checkout/CheckoutPage';
 
 const StoreSubPage = lazy(() => import('../features/placeholder/StoreSubPage'));
 const LoginPage = lazy(() => import('../features/auth/LoginPage'));
@@ -25,15 +29,16 @@ export function StoreRoutes() {
       <Routes>
         <Route element={<StoreLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="shop" element={<StoreSubPage title="Shop Catalog" />} />
+          <Route path="shop" element={<ShopPage />} />
           <Route path="categories" element={<StoreSubPage title="All Categories" />} />
           <Route path="categories/:slug" element={<StoreSubPage />} />
           <Route path="seasons" element={<StoreSubPage title="Seasonal Collections" />} />
           <Route path="seasons/:slug" element={<StoreSubPage />} />
-          <Route path="product/:slug" element={<StoreSubPage title="Product Detail" />} />
+          <Route path="product/:slug" element={<ProductPage />} />
           <Route path="wishlist" element={<StoreSubPage title="My Wishlist" />} />
-          <Route path="cart" element={<StoreSubPage title="Shopping Cart" />} />
-          <Route path="search" element={<StoreSubPage title="Search Results" />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="search" element={<ShopPage />} />
 
           {/* Public */}
           <Route path="login" element={<LoginPage />} />
