@@ -4,7 +4,7 @@ import Card from '../../components/ui/Card';
 import Pill from '../../components/ui/Pill';
 import Button from '../../components/ui/Button';
 import { formatMoney } from '../../utils/formatMoney';
-import { listInvoices } from '../../services/api/invoices';
+import { deleteInvoice, listInvoices } from '../../services/api/invoices';
 import { invoiceStatusLabel, invoiceStatusTone, INVOICE_STATUS_LABELS } from './invoiceUtils';
 import Icon from '../../components/ui/Icon';
 
@@ -16,6 +16,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,6 +51,24 @@ export default function InvoicesPage() {
     });
   };
 
+  const removeInvoice = async (id) => {
+    if (!window.confirm(`Delete invoice ${id}?`)) return;
+    setDeletingId(id);
+    setError('');
+    try {
+      const result = await deleteInvoice(id);
+      if (!result.deleted) {
+        setError('Unable to delete invoice.');
+        return;
+      }
+      setInvoices((current) => current.filter((invoice) => invoice.id !== id));
+    } catch (deleteError) {
+      setError(deleteError.message || 'Unable to delete invoice.');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
   return <div className="tw-flex tw-flex-col tw-gap-5">
     <header className="tw-flex tw-flex-wrap tw-items-end tw-justify-between tw-gap-3">
       <div><div className="tw-text-xs tw-uppercase tw-tracking-[0.12em]"><a href="/" className="link-brand">Dashboard</a><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Ecommerce</span></div><h1 className="tw-mt-2 tw-text-2xl tw-font-semibold">Invoices</h1></div>
@@ -76,7 +95,10 @@ export default function InvoicesPage() {
             <td>{invoice.itemCount}</td>
             <td>{formatMoney(invoice.amounts.total)}</td>
             <td><Pill tone={invoiceStatusTone(invoice.status)}>{invoiceStatusLabel(invoice.status)}</Pill></td>
-            <td><Link aria-label={`Edit invoice ${invoice.id}`} title={`Edit invoice ${invoice.id}`} to={`/ecommerce/invoices/${invoice.id}/edit`} className="tw-inline-flex tw-h-9 tw-w-9 tw-items-center tw-justify-center tw-rounded-md tw-bg-[var(--c-brand)] tw-text-[var(--c-brand-contrast)] hover:tw-opacity-90"><Icon name="edit" size={17} /></Link></td>
+            <td><div className="tw-flex tw-gap-2">
+              <Link aria-label={`Edit invoice ${invoice.id}`} title={`Edit invoice ${invoice.id}`} to={`/ecommerce/invoices/${invoice.id}/edit`} className="tw-inline-flex tw-h-9 tw-w-9 tw-items-center tw-justify-center tw-rounded-md tw-bg-[var(--c-brand)] tw-text-[var(--c-brand-contrast)] hover:tw-opacity-90"><Icon name="edit" size={17} /></Link>
+              <button type="button" aria-label={`Delete invoice ${invoice.id}`} title={`Delete invoice ${invoice.id}`} disabled={deletingId === invoice.id} onClick={() => removeInvoice(invoice.id)} className="tw-inline-flex tw-h-9 tw-w-9 tw-items-center tw-justify-center tw-rounded-md tw-border tw-border-solid tw-border-[var(--c-danger-ink)] tw-bg-transparent tw-text-[var(--c-danger-ink)] hover:tw-bg-[var(--c-danger-bg)] disabled:tw-cursor-not-allowed disabled:tw-opacity-50"><Icon name="trash" size={17} /></button>
+            </div></td>
           </tr>)}</tbody>
         </table>
         {!invoices.length && <p className="tw-py-8 tw-text-center tw-text-muted">No invoices found.</p>}

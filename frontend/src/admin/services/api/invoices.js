@@ -14,3 +14,10 @@ export async function listInvoices({ search = '', status = '' } = {}) {
 export async function getInvoice(id) {
   return delay(invoicesMock.find((invoice) => invoice.id === String(id)) ?? null);
 }
+
+export async function deleteInvoice(id) {
+  const index = invoicesMock.findIndex((invoice) => invoice.id === String(id));
+  if (index < 0) return delay({ deleted: false });
+  invoicesMock.splice(index, 1);
+  return delay({ deleted: true });
+}
