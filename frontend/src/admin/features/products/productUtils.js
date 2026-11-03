@@ -14,22 +14,35 @@ export function validatePrice({ price, salePrice }) {
   return errors;
 }
 
+export function variantFieldError(variant, field) {
+  const value = variant[field];
+  if (field === 'price' && (!/^\d+$/.test(String(value)) || Number(value) <= 0 || Number(value) > 10000000)) return 'Enter a whole amount between 1 and 10,000,000.';
+  if (field === 'salePrice' && value !== '' && value !== null && (!/^\d+$/.test(String(value)) || Number(value) <= 0 || Number(value) >= Number(variant.price))) return 'Sale price must be lower than price.';
+  if (field === 'stock' && (!/^\d+$/.test(String(value)) || Number(value) < 0 || Number(value) > 100000)) return 'Enter stock from 0 to 100,000.';
+  return '';
+}
+
 export function getStockState(product) {
   const stock = product.variants.reduce((sum, variant) => sum + variant.stock, 0);
   return stock === 0 ? 'out_of_stock' : stock < 10 ? 'low' : 'in_stock';
 }
 
 export function generateVariants({ sizes, colors, existing = [] }) {
-  const existingByOptions = new Map(existing.map((variant) => [`${variant.options.size}|${variant.options.color}`, variant]));
+  const existingByOptions = new Map(existing.map((variant) => [`${variant.size || variant.options?.size}|${variant.colourId || variant.options?.color}`, variant]));
   return sizes.flatMap((size) => colors.map((color) => {
-    const key = `${size}|${color}`;
+    const colourId = typeof color === 'string' ? color : color.id;
+    const colourName = typeof color === 'string' ? color : color.name;
+    const key = `${size}|${colourId}`;
     const previous = existingByOptions.get(key);
-    return previous ?? {
+    if (previous) return { ...previous, size, colourId, options: { ...(previous.options || {}), size, color: colourName } };
+    return {
       id: `variant-${slugify(key)}`,
-      sku: '',
+      sku: `PROD-${slugify(key).toUpperCase()}`,
       barcode: '',
-      options: { size, color },
-      price: 0,
+      size,
+      colourId,
+      options: { size, color: colourName },
+      price: '',
       salePrice: null,
       cost: 0,
       stock: 0,
@@ -39,8 +52,8 @@ export function generateVariants({ sizes, colors, existing = [] }) {
 }
 
 export function removedVariantsWithData(previous, next) {
-  const nextKeys = new Set(next.map((variant) => `${variant.options.size}|${variant.options.color}`));
-  return previous.filter((variant) => !nextKeys.has(`${variant.options.size}|${variant.options.color}`) && (variant.stock > 0 || variant.price > 0 || variant.sku));
+  const nextKeys = new Set(next.map((variant) => `${variant.size || variant.options?.size}|${variant.colourId || variant.options?.color}`));
+  return previous.filter((variant) => !nextKeys.has(`${variant.size || variant.options?.size}|${variant.colourId || variant.options?.color}`) && Number(variant.stock) > 0);
 }
 
 export function escapeCsvCell(value) {

@@ -3,6 +3,7 @@ export const PRODUCT_STATUSES = {
   draft: 'Draft',
   scheduled: 'Scheduled',
 };
+export const PRODUCT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
 export const PRODUCT_QUERY_KEYS = ['search', 'category', 'status', 'stockState', 'priceMin', 'priceMax', 'page', 'pageSize', 'sort', 'order'];
 export const PRODUCT_CSV_MAX_BYTES = 5 * 1024 * 1024;

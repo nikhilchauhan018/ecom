@@ -1,10 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeCsvCell, exportProductsCsv, generateVariants, getStockState, parseCsv, removedVariantsWithData, slugify, validateCsvLimits, validatePrice, validateProductRows } from './productUtils.js';
+import { escapeCsvCell, exportProductsCsv, generateVariants, getStockState, parseCsv, removedVariantsWithData, slugify, validateCsvLimits, validatePrice, validateProductRows, variantFieldError } from './productUtils.js';
 import { PRODUCT_CSV_MAX_BYTES, PRODUCT_CSV_MAX_ROWS } from './productConstants.js';
 
 test('slugifies product names', () => assert.equal(slugify(' Linen & Cotton Shirt '), 'linen-cotton-shirt'));
 test('validates sale price below price', () => assert.equal(validatePrice({ price: 100, salePrice: 100 }).salePrice, 'Sale price must be lower than price.'));
+test('validates integer variant fields and edge cases', () => {
+  assert.ok(variantFieldError({ price: '1.5' }, 'price'));
+  assert.ok(variantFieldError({ price: '-1' }, 'price'));
+  assert.ok(variantFieldError({ price: '10000001' }, 'price'));
+  assert.equal(variantFieldError({ price: '100', salePrice: '' }, 'salePrice'), '');
+  assert.ok(variantFieldError({ price: '100', salePrice: '100' }, 'salePrice'));
+  assert.ok(variantFieldError({ stock: '1.2' }, 'stock'));
+  assert.ok(variantFieldError({ stock: '100001' }, 'stock'));
+});
 test('computes stock state from variants', () => assert.equal(getStockState({ variants: [{ stock: 0 }, { stock: 0 }] }), 'out_of_stock'));
 test('regenerates variants while retaining edited rows', () => {
   const existing = [{ id: 'keep', sku: 'SKU', barcode: '', options: { size: 'M', color: 'Navy' }, price: 100, salePrice: null, cost: 50, stock: 4, image: '' }];
