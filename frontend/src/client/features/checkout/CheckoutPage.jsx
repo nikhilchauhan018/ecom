@@ -1,52 +1,312 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { Link } from 'react-router-dom';
 import { getProductsByIds } from '../../services/catalog.js';
-import { listAddresses } from '../../services/account';
+import { listAddresses, saveAddress } from '../../services/account';
 import { cartStore } from '../../stores/cartStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useSettings } from '../../hooks/useSettings';
 import { useT } from '../../hooks/useT';
-import { formatMoney } from '../../utils/formatMoney';
+import { ROUTES } from '../../config/constants';
+import { Button } from '../../components/ui/Button';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Notice } from '../../components/ui/Notice';
+import { AddAddressDialog } from './components/AddAddressDialog';
+import { ChoiceCard } from './components/ChoiceCard';
+import { OrderSummary } from './components/OrderSummary';
+import {
+  buildLines,
+  calculateTotals,
+  formatCheckoutAddress,
+  formatCheckoutPhone,
+  mergeAddresses,
+  resolveSelectedId,
+} from './checkoutUtils.js';
+import { addLocalAddress, readLocalAddresses, updateLocalAddress } from './localAddresses.js';
 import '../../styles/checkout.css';
 
-const LOCAL_ADDRESSES_KEY = 'storefront_checkout_addresses';
-
-/** Checkout page with reusable saved addresses and a new-address fallback. */
+/**
+ * Checkout preview. Address validation and persistence use the existing account flows;
+ * an order or payment is never reported as successful without backend support.
+ */
 export function CheckoutPage() {
-  const navigate = useNavigate();
   const settings = useSettings();
   const { t } = useT();
-  const { isAuthenticated } = useAuth();
-  const [items] = useState(() => cartStore.getSnapshot());
-  const [products, setProducts] = useState([]);
-  const [savedAddresses, setSavedAddresses] = useState([]);
-  const [selectedAddress, setSelectedAddress] = useState('new');
-  const [saveForLater, setSaveForLater] = useState(true);
-  const [payment, setPayment] = useState('cash');
-  const [placed, setPlaced] = useState(false);
-  const [form, setForm] = useState({ fullName: '', phone: '', address: '', city: '', postalCode: '' });
+  const { isAuthenticated, status: authStatus } = useAuth();
 
-  useEffect(() => { getProductsByIds(items.map((item) => item.id)).then(setProducts); }, [items]);
+  const items = useSyncExternalStore(cartStore.subscribe, cartStore.getSnapshot, cartStore.getServerSnapshot);
+  const [catalog, setCatalog] = useState({ items: null, products: [], error: false });
+  const [catalogRetry, setCatalogRetry] = useState(0);
   useEffect(() => {
     let active = true;
-    const local = JSON.parse(localStorage.getItem(LOCAL_ADDRESSES_KEY) || '[]');
-    setSavedAddresses(local);
-    if (local[0]) setSelectedAddress(local[0].id);
-    if (isAuthenticated) listAddresses().then((accountAddresses) => { if (!active) return; const merged = [...accountAddresses, ...local.filter((localAddress) => !accountAddresses.some((address) => address.postalCode === localAddress.postalCode && address.line1 === localAddress.line1))]; setSavedAddresses(merged); const preferred = accountAddresses.find((address) => address.isDefault) || merged[0]; if (preferred) setSelectedAddress(preferred.id); }).catch(() => {});
+    getProductsByIds(items.map((item) => item.id))
+      .then((products) => { if (active) setCatalog({ items, products, error: false }); })
+      .catch(() => { if (active) setCatalog({ items, products: [], error: true }); });
     return () => { active = false; };
-  }, [isAuthenticated]);
+  }, [items, catalogRetry]);
 
-  const lines = useMemo(() => items.map((item) => ({ item, product: products.find((product) => String(product.id) === String(item.id)) })).filter((line) => line.product), [items, products]);
-  const subtotal = lines.reduce((total, line) => total + line.product.price * (line.item.quantity || 1), 0);
-  const total = subtotal + (lines.length ? 5 : 0);
-  const selectedSavedAddress = savedAddresses.find((address) => address.id === selectedAddress);
-  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
-  const selectSavedAddress = (address) => { setSelectedAddress(address.id); setForm({ fullName: address.fullName, phone: address.phone, address: [address.line1, address.line2].filter(Boolean).join(', '), city: address.city, postalCode: address.postalCode }); };
-  const persistNewAddress = () => { if (!saveForLater) return; const next = { id: `local-${Date.now()}`, label: 'home', fullName: form.fullName, phone: form.phone, line1: form.address, line2: '', city: form.city, postalCode: form.postalCode, isDefault: true }; const current = JSON.parse(localStorage.getItem(LOCAL_ADDRESSES_KEY) || '[]'); localStorage.setItem(LOCAL_ADDRESSES_KEY, JSON.stringify([next, ...current.filter((address) => address.postalCode !== next.postalCode || address.line1 !== next.line1)])); };
-  const placeOrder = (event) => { event.preventDefault(); if (!selectedSavedAddress && Object.values(form).some((value) => !value.trim())) return; persistNewAddress(); setPlaced(true); };
+  const productsReady = catalog.items === items;
+  const lines = useMemo(() => buildLines(items, catalog.products), [items, catalog.products]);
+  const totals = useMemo(() => calculateTotals(lines), [lines]);
+  const hasUnavailableItems = productsReady && lines.length < items.length;
 
-  if (placed) return <div className="sf-checkout-success"><h1>{t('checkout.success')}</h1><Link to="/shop">{t('cart.continueShopping')}</Link></div>;
-  return <div className="sf-checkout-page"><header className="sf-checkout-header"><button type="button" onClick={() => navigate('/cart')} aria-label={t('checkout.backToCart')}>‹</button><h1>{t('checkout.title')}</h1></header><form className="sf-checkout-layout" onSubmit={placeOrder}><main className="sf-checkout-form">{savedAddresses.length > 0 && <fieldset><legend>{t('checkout.savedAddresses')}</legend><div className="sf-saved-addresses">{savedAddresses.map((address) => <button type="button" key={address.id} className={selectedAddress === address.id ? 'is-selected' : ''} onClick={() => selectSavedAddress(address)}><strong>{t(`addresses.labels.${address.label}`, { defaultValue: address.label })}</strong>{address.isDefault && <small>{t('addresses.defaultBadge')}</small>}<span>{address.fullName}</span><span>{address.line1}, {address.city}, {address.postalCode}</span></button>)}<button type="button" className={selectedAddress === 'new' ? 'is-selected' : ''} onClick={() => setSelectedAddress('new')}>{t('checkout.useNewAddress')}</button></div></fieldset>}{!selectedSavedAddress && <fieldset><legend>{t('checkout.deliveryAddress')}</legend><label>{t('checkout.fullName')}<input required value={form.fullName} onChange={(event) => update('fullName', event.target.value)} /></label><label>{t('checkout.phone')}<input required type="tel" value={form.phone} onChange={(event) => update('phone', event.target.value)} /></label><label>{t('checkout.address')}<input required value={form.address} onChange={(event) => update('address', event.target.value)} /></label><div className="sf-checkout-fields"><label>{t('checkout.city')}<input required value={form.city} onChange={(event) => update('city', event.target.value)} /></label><label>{t('checkout.postalCode')}<input required value={form.postalCode} onChange={(event) => update('postalCode', event.target.value)} /></label></div><label className="sf-save-address"><input type="checkbox" checked={saveForLater} onChange={(event) => setSaveForLater(event.target.checked)} />{t('checkout.saveForLater')}</label></fieldset>}<fieldset><legend>{t('checkout.payment')}</legend><label className="sf-payment-option"><input type="radio" name="payment" value="cash" checked={payment === 'cash'} onChange={() => setPayment('cash')} />{t('checkout.cash')}</label><label className="sf-payment-option"><input type="radio" name="payment" value="online" checked={payment === 'online'} onChange={() => setPayment('online')} />{t('checkout.online')}</label></fieldset></main><aside className="sf-checkout-summary"><h2>{t('checkout.orderSummary')}</h2>{lines.map(({ item, product }) => <div className="sf-checkout-line" key={product.id}><span>{product.name} × {item.quantity || 1}</span><strong>{formatMoney(product.price * (item.quantity || 1), settings)}</strong></div>)}<div className="sf-checkout-total"><span>{t('cart.total')}</span><strong>{formatMoney(total, settings)}</strong></div><button type="submit" className="sf-place-order">{t('checkout.placeOrder')}</button></aside></form></div>;
+  const [addresses, setAddresses] = useState([]);
+  const [addressStatus, setAddressStatus] = useState('loading');
+  const [reloadKey, setReloadKey] = useState(0);
+  useEffect(() => {
+    if (authStatus === 'loading') return undefined;
+    const local = readLocalAddresses();
+    if (!isAuthenticated) {
+      setAddresses(local);
+      setAddressStatus('ready');
+      return undefined;
+    }
+
+    let active = true;
+    setAddressStatus('loading');
+    listAddresses()
+      .then((account) => {
+        if (active) {
+          setAddresses(mergeAddresses(account, local));
+          setAddressStatus('ready');
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setAddresses(local);
+          setAddressStatus('error');
+        }
+      });
+    return () => { active = false; };
+  }, [isAuthenticated, authStatus, reloadKey]);
+
+  const [selectedId, setSelectedId] = useState(null);
+  const activeId = resolveSelectedId(addresses, selectedId);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [addressDraft, setAddressDraft] = useState(null);
+  const [payment, setPayment] = useState('cash');
+  const [notice, setNotice] = useState(null);
+
+  const chooseAddress = (id) => { setSelectedId(id); setNotice(null); };
+  const choosePayment = (method) => { setPayment(method); setNotice(null); };
+
+  const openAddressDialog = (address = null) => {
+    setAddressDraft(address);
+    setDialogOpen(true);
+  };
+  const closeAddressDialog = () => {
+    setDialogOpen(false);
+    setAddressDraft(null);
+  };
+
+  const handleSaveAddress = async (values) => {
+    let savedAddress;
+    if (isAuthenticated) {
+      savedAddress = await saveAddress(values, addressDraft?.id);
+      try {
+        setAddresses(mergeAddresses(await listAddresses(), readLocalAddresses()));
+      } catch {
+        setAddresses((current) => (
+          addressDraft
+            ? current.map((address) => (address.id === savedAddress.id ? savedAddress : address))
+            : [...current, savedAddress]
+        ));
+      }
+    } else if (addressDraft) {
+      savedAddress = updateLocalAddress(addressDraft.id, values);
+      setAddresses((current) => current.map((address) => (address.id === savedAddress.id ? savedAddress : address)));
+    } else {
+      savedAddress = addLocalAddress(values);
+      setAddresses((current) => [
+        ...(savedAddress.isDefault ? current.map((address) => ({ ...address, isDefault: false })) : current),
+        savedAddress,
+      ]);
+    }
+    setSelectedId(savedAddress.id);
+    setNotice(null);
+    closeAddressDialog();
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!lines.length) return;
+    if (!activeId) {
+      setNotice({ tone: 'error', text: t('checkout.addressRequired') });
+      return;
+    }
+    setNotice({
+      tone: 'warning',
+      text: payment === 'online' ? t('checkout.onlineUnavailable') : t('checkout.demoNotice'),
+    });
+  };
+
+  const updateQuantity = (id, quantity) => {
+    if (quantity >= 1) cartStore.updateQuantity(id, quantity);
+  };
+
+  if (!productsReady) {
+    return <div className="sf-checkout-page"><p role="status" className="sf-checkout-hint">{t('common.loading')}</p></div>;
+  }
+
+  if (catalog.error) {
+    return (
+      <div className="sf-checkout-page">
+        <h1 className="sf-checkout-title">{t('checkout.title')}</h1>
+        <Notice tone="error" className="sf-checkout-notice">
+          <span>{t('checkout.productsError')}</span>{' '}
+          <Button variant="outline" size="sm" onClick={() => setCatalogRetry((key) => key + 1)}>{t('common.retry')}</Button>
+        </Notice>
+      </div>
+    );
+  }
+
+  if (!lines.length) {
+    return (
+      <div className="sf-checkout-page">
+        <h1 className="sf-checkout-title">{t('checkout.title')}</h1>
+        <EmptyState
+          icon="package"
+          title={t('cart.emptyTitle')}
+          body={hasUnavailableItems ? t('checkout.unavailableItems') : t('cart.emptyBody')}
+          actionLabel={t('cart.continueShopping')}
+          actionTo={ROUTES.SHOP}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="sf-checkout-page">
+      <header className="sf-checkout-header">
+        <div>
+          <p className="sf-checkout-eyebrow">{t('checkout.eyebrow')}</p>
+          <h1 className="sf-checkout-title">{t('checkout.title')}</h1>
+        </div>
+        <p className="sf-checkout-secure"><span aria-hidden="true">✓</span> {t('checkout.secureNote')}</p>
+      </header>
+
+      <nav className="sf-checkout-progress" aria-label={t('checkout.progressLabel')}>
+        <ol>
+          <li className="is-complete">
+            <Link to={ROUTES.CART}>
+              <span className="sf-progress-dot">✓</span><span>{t('checkout.stepCart')}</span>
+            </Link>
+          </li>
+          <li className={activeId ? 'is-complete' : 'is-current'} aria-current={!activeId ? 'step' : undefined}>
+            <span className="sf-progress-content">
+              <span className="sf-progress-dot">{activeId ? '✓' : '2'}</span>
+              <span>{t('checkout.stepAddress')}</span>
+            </span>
+          </li>
+          <li className={activeId ? 'is-current' : ''} aria-current={activeId ? 'step' : undefined}>
+            <span className="sf-progress-content">
+              <span className="sf-progress-dot">3</span>
+              <span>{t('checkout.stepPayment')}</span>
+            </span>
+          </li>
+        </ol>
+      </nav>
+
+      <form className="sf-checkout-layout" onSubmit={handleSubmit} noValidate>
+        <div className="sf-checkout-main">
+          <fieldset className="sf-checkout-section">
+            <legend><span className="sf-section-step">1</span>{t('checkout.deliveryAddress')}</legend>
+            <p className="sf-checkout-section-hint">{t('checkout.addressHint')}</p>
+            {addressStatus === 'loading' && (
+              <p role="status" className="sf-checkout-hint">{t('checkout.loadingAddresses')}</p>
+            )}
+            {addressStatus === 'error' && (
+              <Notice tone="error" className="sf-checkout-notice">
+                <span>{t('checkout.addressesError')}</span>{' '}
+                <Button variant="outline" size="sm" onClick={() => setReloadKey((key) => key + 1)}>
+                  {t('common.retry')}
+                </Button>
+              </Notice>
+            )}
+            <div className="sf-choice-list">
+              {addresses.map((address) => (
+                <ChoiceCard
+                  key={address.id}
+                  name="address"
+                  value={address.id}
+                  checked={activeId === address.id}
+                  onChange={() => chooseAddress(address.id)}
+                >
+                  <span className="sf-choice-title">
+                    {address.fullName}
+                    <span className="sf-choice-tag">{t(`addresses.labels.${address.label}`)}</span>
+                    {address.isDefault && <span className="sf-choice-tag is-faint">{t('addresses.defaultBadge')}</span>}
+                  </span>
+                  <span className="sf-choice-line">{formatCheckoutAddress(address)}</span>
+                  <span className="sf-choice-line">{t('checkout.mobile', { phone: formatCheckoutPhone(address.phone) })}</span>
+                </ChoiceCard>
+              ))}
+              <ChoiceCard
+                dashed
+                name="address"
+                value="new"
+                checked={dialogOpen && !addressDraft}
+                onChange={() => openAddressDialog()}
+              >
+                <span className="sf-choice-title">{t('checkout.addNewAddress')}</span>
+                <span className="sf-choice-line">{t('checkout.addNewAddressHint')}</span>
+              </ChoiceCard>
+            </div>
+            {activeId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="sf-checkout-edit-address"
+                onClick={() => openAddressDialog(addresses.find((address) => address.id === activeId))}
+              >
+                {t('checkout.editSelectedAddress')}
+              </Button>
+            )}
+          </fieldset>
+
+          <fieldset className="sf-checkout-section">
+            <legend><span className="sf-section-step">2</span>{t('checkout.payment')}</legend>
+            <p className="sf-checkout-section-hint">{t('checkout.paymentHint')}</p>
+            <div className="sf-choice-list">
+              <ChoiceCard name="payment" value="cash" checked={payment === 'cash'} onChange={() => choosePayment('cash')}>
+                <span className="sf-choice-title">{t('checkout.cash')}</span>
+                <span className="sf-choice-line">{t('checkout.cashHint')}</span>
+              </ChoiceCard>
+              <ChoiceCard name="payment" value="online" checked={payment === 'online'} onChange={() => choosePayment('online')}>
+                <span className="sf-choice-title">{t('checkout.online')}</span>
+                <span className="sf-choice-line">{t('checkout.onlineHint')}</span>
+              </ChoiceCard>
+            </div>
+          </fieldset>
+        </div>
+
+        <aside className="sf-checkout-side">
+          {hasUnavailableItems && (
+            <Notice tone="warning" className="sf-checkout-notice">{t('checkout.unavailableItems')}</Notice>
+          )}
+          <OrderSummary
+            lines={lines}
+            total={totals.total}
+            itemCount={totals.itemCount}
+            settings={settings}
+            onQuantityChange={updateQuantity}
+            onRemove={(id) => cartStore.removeItem(id)}
+          />
+          {notice && <Notice tone={notice.tone} className="sf-checkout-notice">{notice.text}</Notice>}
+          <button type="submit" className="sf-place-order">{t('checkout.placeOrder')}</button>
+          <p className="sf-checkout-preview-note">{t('checkout.previewOnly')}</p>
+          <Link className="sf-checkout-back" to={ROUTES.CART}>{t('checkout.backToCart')}</Link>
+        </aside>
+      </form>
+
+      <AddAddressDialog
+        open={dialogOpen}
+        onClose={closeAddressDialog}
+        onSubmit={handleSaveAddress}
+        initial={addressDraft || undefined}
+        editing={Boolean(addressDraft)}
+      />
+    </div>
+  );
 }
 
 export default CheckoutPage;

@@ -8,9 +8,8 @@ Backend notes (rate limiting, SMS-pumping guards, sessions, API contract): see `
 ## Working rules
 1. Scope: only `frontend/src/client/**` (plus this file and tests). **Never touch `frontend/src/admin/**`.**
 2. One task at a time. Finish, update this doc, report, then wait for the next instruction.
-3. The terminal sandbox is broken on this machine, so the assistant cannot run `npm test` / `npm run lint`.
-   Anything marked `UNVERIFIED` has been written and diagnostics-checked in the editor, but not executed.
-   The owner runs `npm test` and `npm run lint` in their own PowerShell (in `frontend/`) and pastes failures back.
+3. Run available npm scripts from `frontend/` when dependencies are available. Mark work `UNVERIFIED`
+   only when it has not been executed; record actual command results in the relevant task.
 4. `backend/` is empty. All server behaviour lives in `src/client/services/mock/mockServer.js` and is a
    stand-in that must be replaced by real endpoints. The mock is **not** real security.
 
@@ -71,7 +70,6 @@ Legend: `DONE` built + diagnostics clean | `UNVERIFIED` written, not executed | 
 - Country detection is a heuristic (saved choice > server IP hint > time zone > browser language > US). The real
   IP hint needs a backend `GET /geo` (`services/geo.js` is a stub returning null).
 - `AddressForm` phone field still uses the old plain input; it needs the country picker (T1b).
-- Nothing has been executed: tests/lint unverified (rule 3).
 - `PROJECT_CONFIG.md` is outdated (port, lint command) and contains a plaintext GitHub token. **Revoke that token.**
 
 ---
@@ -108,8 +106,19 @@ Client side only. Admin screens are out of scope; the client reads a setting and
 - [x] Backend checklist (per-IP, per-device, per-country, daily cap, SMS-pumping guard): written in
       `BACKEND_REQUIREMENTS.md` section 1 (saved 2026-10-31). Remaining T3 items are the client-side ones above.
 
-### T4. Run and fix — `TODO` (needs the owner's terminal)
-- [ ] Owner runs `npm test` and `npm run lint`; paste failures; fix.
+### T4. Run and fix — `DONE` (verified 2026-11-03)
+- [x] `npm ci`; `npm test` (150 passed); `npm run lint` (exit 0; 12 existing warnings); `npm run build` (success, 390 modules).
 
 ### T5. Remaining storefront pages — `TODO` (after the above)
-- [ ] Shop / category listing, Product detail, Cart, Wishlist, Search, Checkout
+- [ ] Shop / category listing, Product detail, Cart, Wishlist, Search
+
+### T6. Checkout improvements — `DONE` (verified 2026-11-03)
+- [x] Added an accessible Cart → Address → Payment progress indicator and responsive checkout layout.
+- [x] Kept saved-address selection; added validated address creation and editing for signed-in and guest shoppers.
+- [x] Added product images and available variants, quantity controls, remove actions, and a product-only subtotal breakdown.
+- [x] Added empty/unavailable-cart handling and catalog-load error/retry UI.
+- [x] Cash and online options are selectable, but both remain preview-only: no payment or order is created.
+- Verification: browser-smoke-tested checkout at 1280px and 390px; address validation/add/edit/selection,
+  payment selection, product variants, quantity/subtotal changes, removal, and the empty-cart state.
+  The catalog retry branch is present, but the deterministic mock catalog did not fail during the browser run.
+- Backend payment/order integration remains unavailable and unfinished.
