@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Card from '../../components/ui/Card';
@@ -166,7 +166,7 @@ export default function ProductFormPage() {
   };
   const duplicate = async () => { const result = await duplicateProduct(id); if (result) navigate(`/ecommerce/products/${result.id}/edit`); };
   const cancel = () => { if (dirty && !window.confirm('Discard unsaved changes?')) return; navigate('/ecommerce/products'); };
-  const imageList = useMemo(() => product.images || [], [product.images]);
+  const imageList = product.images || [];
   const photoColour = (index) => colours.find((colour) => colour.id === photoDetails[index]?.colourId) || colours[0];
 
   if (loading) return <Card><div role="status" className="tw-h-32 tw-animate-pulse tw-rounded tw-bg-page" /></Card>;

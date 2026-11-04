@@ -1,7 +1,9 @@
 import Form from 'react-bootstrap/Form';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/ui/Icon';
-import { dashboardMock as d } from '../../data/dashboard.mock';
+import { LoadError, LoadingBlock } from '../../components/ui/AsyncState';
+import { getDashboardSummary } from '../../services/api/dashboard';
+import { useResource } from '../../hooks/useResource';
 import StatTiles from './components/StatTiles';
 import SalesChart from './components/SalesChart';
 import TodoList from './components/TodoList';
@@ -13,8 +15,10 @@ import FeatureModules from './components/FeatureModules';
 import SecurityOverview from './components/SecurityOverview';
 
 const split = 'tw-grid tw-grid-cols-1 tw-gap-4 lg:tw-grid-cols-[2fr_1fr]';
+const NO_PARAMS = {};
 
 export default function DashboardPage() {
+  const { data: d, error, loading, reload } = useResource(getDashboardSummary, NO_PARAMS);
   return (
     <>
       <div className="tw-flex tw-flex-wrap tw-items-center tw-gap-3">
@@ -40,12 +44,14 @@ export default function DashboardPage() {
         <Button variant="brandOutline">Manage widgets</Button>
       </div>
 
-      <StatTiles tiles={d.tiles} />
-      <section className={split}><SalesChart data={d.salesByDay} /><TodoList items={d.todo} /></section>
-      <section className={split}><RecentOrders orders={d.recentOrders} /><ActivityLogs items={d.activity} /></section>
-      <section className={split}><NotificationsPanel items={d.notifications} /><TopCategories items={d.topCategories} /></section>
-      <FeatureModules modules={d.modules} />
-      <SecurityOverview data={d.security} />
+      {error ? <LoadError message="Unable to load the dashboard." onRetry={reload} /> : loading || !d ? <LoadingBlock label="Loading dashboard" className="tw-h-96" /> : <>
+        <StatTiles tiles={d.tiles} />
+        <section className={split}><SalesChart data={d.salesByDay} /><TodoList items={d.todo} /></section>
+        <section className={split}><RecentOrders orders={d.recentOrders} /><ActivityLogs items={d.activity} /></section>
+        <section className={split}><NotificationsPanel items={d.notifications} /><TopCategories items={d.topCategories} /></section>
+        <FeatureModules modules={d.modules} />
+        <SecurityOverview data={d.security} />
+      </>}
     </>
   );
 }

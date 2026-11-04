@@ -20,6 +20,8 @@ const ReturnsPage = lazy(() => import('../features/returns/ReturnsPage'));
 const DiscountsPage = lazy(() => import('../features/discounts/DiscountsPage'));
 const ReviewsPage = lazy(() => import('../features/reviews/ReviewsPage'));
 const ShippingPage = lazy(() => import('../features/shipping/ShippingPage'));
+const IncompleteOrdersPage = lazy(() => import('../features/incomplete-orders/IncompleteOrdersPage'));
+const IncompleteOrderDetailPage = lazy(() => import('../features/incomplete-orders/IncompleteOrderDetailPage'));
 
 export default function AppRoutes() {
   return (
@@ -32,7 +34,8 @@ export default function AppRoutes() {
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="orders/:id/edit" element={<OrderFormPage />} />
           <Route path="report" element={<ComingSoonPage />} />
-          <Route path="incomplete-orders" element={<ComingSoonPage />} />
+          <Route path="incomplete-orders" element={<IncompleteOrdersPage />} />
+          <Route path="incomplete-orders/:id" element={<IncompleteOrderDetailPage />} />
           <Route path="order-returns" element={<ReturnsPage />} />
           <Route path="shipments" element={<ShipmentsPage />} />
           <Route path="invoices" element={<InvoicesPage />} />

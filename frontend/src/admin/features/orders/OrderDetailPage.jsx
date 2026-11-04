@@ -5,7 +5,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/ui/Icon';
 import OrderStatusPill from './components/OrderStatusPill';
-import { ORDER_STATUSES } from './orderStatus';
+import { ORDER_STATUSES, allowedNextStatuses, orderErrorSentence } from './orderStatus';
 import { addOrderNote, deleteOrder, getOrder, refundOrder, updateOrder, updateOrderStatus } from '../../services/api/orders';
 import { formatMoney } from '../../utils/formatMoney';
 import { getStoreSettings } from '../../config/settings';
@@ -30,6 +30,7 @@ export default function OrderDetailPage() {
   const [refundAmount, setRefundAmount] = useState('');
   const [refundReason, setRefundReason] = useState('');
   const [message, setMessage] = useState('');
+  const [actionError, setActionError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -53,8 +54,14 @@ export default function OrderDetailPage() {
   const changeStatus = async (event) => {
     event.preventDefault();
     if (!status || status === order.status) return;
-    await save(await updateOrderStatus(id, status, { note: statusNote, notify }), 'Order status updated.');
-    setStatusNote('');
+    setActionError('');
+    try {
+      await save(await updateOrderStatus(id, status, { note: statusNote, notify }), 'Order status updated.');
+      setStatusNote('');
+    } catch (statusError) {
+      setActionError(orderErrorSentence(statusError?.code));
+      setStatus(order.status);
+    }
   };
   const addNote = async (event) => {
     event.preventDefault();
@@ -79,8 +86,14 @@ export default function OrderDetailPage() {
   };
   const remove = async () => {
     if (!window.confirm('Delete this order?')) return;
-    await deleteOrder(id);
-    navigate('/ecommerce/orders');
+    setActionError('');
+    try {
+      const result = await deleteOrder(id);
+      if (result.deleted) navigate('/ecommerce/orders');
+      else setActionError(orderErrorSentence(result.code));
+    } catch {
+      setActionError('Unable to delete the order.');
+    }
   };
 
   if (loading) return <Card><div className="tw-h-32 tw-animate-pulse tw-rounded tw-bg-page" /></Card>;
@@ -92,11 +105,12 @@ export default function OrderDetailPage() {
       <div className="print-hidden tw-flex tw-flex-wrap tw-gap-2"><Button variant="brandOutline" onClick={() => window.print()}><Icon name="download" size={16} /> Print invoice</Button><Button variant="brandOutline" onClick={() => window.print()}><Icon name="download" size={16} /> Packing slip</Button><Button variant="brandOutline" onClick={() => navigate(`/ecommerce/orders/${id}/edit`)}><Icon name="edit" size={16} /> Edit</Button></div>
     </header>
     {message && <div role="status" aria-live="polite" className="tw-rounded-lg tw-bg-[var(--c-success-bg)] tw-p-3 tw-text-[var(--c-success-ink)]">{message}</div>}
+    {actionError && <div role="alert" className="tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-3 tw-text-[var(--c-danger-ink)]">{actionError}</div>}
     <div className="tw-grid tw-items-start tw-gap-5 lg:tw-grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
       <div className="tw-flex tw-flex-col tw-gap-5">
         <ItemsCard order={order} />
         <Card title="Order notes"><form onSubmit={addNote} className="tw-flex tw-flex-col tw-gap-2 sm:tw-flex-row"><Form.Control aria-label="Add internal note" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add an internal note" /><Button type="submit">Add note</Button></form><div className="tw-mt-4 tw-space-y-3">{order.notes.map((item) => <div key={item.id} className="tw-border-0 tw-border-t tw-border-solid tw-border-hair tw-pt-3"><p>{item.text}</p><small className="tw-text-muted">{item.by} · {new Date(item.at).toLocaleString(settings.locale)}</small></div>)}</div></Card>
-        <Card title="Status timeline"><form onSubmit={changeStatus} className="tw-grid tw-gap-3 sm:tw-grid-cols-[1fr_1fr_auto]"><Form.Group><Form.Label>Change status</Form.Label><Form.Select value={status} onChange={(event) => setStatus(event.target.value)}>{Object.entries(ORDER_STATUSES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</Form.Select></Form.Group><Form.Group><Form.Label>Optional note</Form.Label><Form.Control value={statusNote} onChange={(event) => setStatusNote(event.target.value)} /></Form.Group><Button className="sm:tw-mt-8" type="submit">Save</Button></form><Form.Check className="tw-mt-3" type="checkbox" label="Notify customer" checked={notify} onChange={(event) => setNotify(event.target.checked)} /> <div className="tw-mt-5 tw-space-y-4">{[...order.history].reverse().map((item, index) => <div key={`${item.at}-${index}`} className="tw-flex tw-gap-3"><span className="tw-mt-1 tw-h-2.5 tw-w-2.5 tw-shrink-0 tw-rounded-full tw-bg-brand" /><div><strong>{ORDER_STATUSES[item.status]?.label || item.status}</strong><p className="tw-text-muted">{item.note || 'Status changed'} · {item.by} · {new Date(item.at).toLocaleString(settings.locale)}</p></div></div>)}</div></Card>
+        <Card title="Status timeline"><form onSubmit={changeStatus} className="tw-grid tw-gap-3 sm:tw-grid-cols-[1fr_1fr_auto]"><Form.Group><Form.Label>Change status</Form.Label><Form.Select value={status} onChange={(event) => setStatus(event.target.value)} disabled={!allowedNextStatuses(order.status).length}>{[order.status, ...allowedNextStatuses(order.status)].map((key) => <option key={key} value={key}>{ORDER_STATUSES[key]?.label || key}</option>)}</Form.Select></Form.Group><Form.Group><Form.Label>Optional note</Form.Label><Form.Control value={statusNote} onChange={(event) => setStatusNote(event.target.value)} /></Form.Group><Button className="sm:tw-mt-8" type="submit" disabled={status === order.status}>Save</Button></form><Form.Check className="tw-mt-3" type="checkbox" label="Notify customer" checked={notify} onChange={(event) => setNotify(event.target.checked)} /> <div className="tw-mt-5 tw-space-y-4">{[...order.history].reverse().map((item, index) => <div key={`${item.at}-${index}`} className="tw-flex tw-gap-3"><span className="tw-mt-1 tw-h-2.5 tw-w-2.5 tw-shrink-0 tw-rounded-full tw-bg-brand" /><div><strong>{ORDER_STATUSES[item.status]?.label || item.status}</strong><p className="tw-text-muted">{item.note || 'Status changed'} · {item.by} · {new Date(item.at).toLocaleString(settings.locale)}</p></div></div>)}</div></Card>
       </div>
       <div className="tw-flex tw-flex-col tw-gap-5">
         <InfoCard title="Customer"><strong>{order.customer.name}</strong><a className="link-brand tw-block" href={`mailto:${order.customer.email}`}>{order.customer.email}</a><span className="tw-text-muted">{order.customer.phone}</span></InfoCard>
