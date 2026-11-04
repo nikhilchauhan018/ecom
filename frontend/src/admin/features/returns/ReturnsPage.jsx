@@ -1,52 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Pill from '../../components/ui/Pill';
+import { LoadError, LoadingBlock } from '../../components/ui/AsyncState';
 import { formatMoney } from '../../utils/formatMoney';
 import { listReturns } from '../../services/api/returns';
+import { useResource } from '../../hooks/useResource';
+import { useQueryState } from '../../hooks/useQueryState';
+import { useSearchInput } from '../../hooks/useSearchInput';
 import { returnStatusLabel, returnStatusTone, RETURN_STATUS_LABELS } from './returnUtils';
 
+const NO_RETURNS = [];
+const QUERY = { search: '', status: '' };
+
 export default function ReturnsPage() {
-  const [params, setParams] = useSearchParams();
-  const search = params.get('search') || '';
-  const status = params.get('status') || '';
-  const [searchInput, setSearchInput] = useState(search);
-  const [returns, setReturns] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setParams((current) => {
-        if (searchInput.trim()) current.set('search', searchInput.trim());
-        else current.delete('search');
-        return current;
-      });
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput, setParams]);
-
-  useEffect(() => {
-    let active = true;
-    listReturns({ search, status }).then((result) => {
-      if (active) setReturns(result.data);
-    }).catch((loadError) => {
-      if (active) setError(loadError.message || 'Unable to load returns.');
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
-  }, [search, status]);
-
-  const setFilter = (key, value) => {
-    setLoading(true);
-    setError('');
-    setParams((current) => {
-      if (value) current.set(key, value);
-      else current.delete(key);
-      return current;
-    });
-  };
+  const [query, setQuery] = useQueryState(QUERY);
+  const { status } = query;
+  const [searchInput, setSearchInput] = useSearchInput(query.search, (search) => setQuery({ search }, { replace: true }));
+  const { data: result, error, loading, reload } = useResource(listReturns, query);
+  const returns = result?.data ?? NO_RETURNS;
 
   return <div className="tw-flex tw-flex-col tw-gap-5">
     <header>
@@ -55,14 +25,13 @@ export default function ReturnsPage() {
     </header>
     <Card>
       <div className="tw-flex tw-flex-wrap tw-gap-3">
-        <label className="tw-flex-1"><span className="visually-hidden">Search returns</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => { setLoading(true); setError(''); setSearchInput(event.target.value); }} placeholder="Search return, order, customer, or reason..." /></label>
-        <select className="form-select tw-h-11 tw-max-w-[190px]" aria-label="Filter return status" value={status} onChange={(event) => setFilter('status', event.target.value)}>
+        <label className="tw-flex-1"><span className="visually-hidden">Search returns</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search return, order, customer, or reason..." /></label>
+        <select className="form-select tw-h-11 tw-max-w-[190px]" aria-label="Filter return status" value={status} onChange={(event) => setQuery({ status: event.target.value })}>
           <option value="">All statuses</option>
           {Object.entries(RETURN_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </div>
-      {error && <div role="alert" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-4 tw-text-[var(--c-danger-ink)]">{error}</div>}
-      {loading ? <div role="status" aria-label="Loading returns" className="tw-mt-5 tw-h-40 tw-animate-pulse tw-rounded tw-bg-page" /> : <div className="tw-overflow-x-auto">
+      {error ? <div className="tw-mt-4"><LoadError message="Unable to load returns." onRetry={reload} /></div> : loading ? <LoadingBlock label="Loading returns" className="tw-mt-5 tw-h-40" /> : <div className="tw-overflow-x-auto">
         <table className="admin-table tw-mt-5 tw-min-w-[1000px]">
           <caption className="visually-hidden">Order returns</caption>
           <thead><tr>{['Return', 'Order', 'Customer', 'Reason', 'Requested', 'Items', 'Amount', 'Status'].map((heading) => <th key={heading} scope="col" className="tw-text-xs tw-uppercase tw-text-muted">{heading}</th>)}</tr></thead>

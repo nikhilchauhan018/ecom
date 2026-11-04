@@ -1,56 +1,25 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Pill from '../../components/ui/Pill';
+import { LoadError, LoadingBlock } from '../../components/ui/AsyncState';
 import { listReviews } from '../../services/api/reviews';
+import { useResource } from '../../hooks/useResource';
+import { useQueryState } from '../../hooks/useQueryState';
+import { useSearchInput } from '../../hooks/useSearchInput';
 import { REVIEW_RATINGS, REVIEW_STATUS_LABELS, reviewStatusLabel, reviewStatusTone } from './reviewUtils';
+
+const NO_REVIEWS = [];
+const QUERY = { search: '', status: '', rating: '' };
 
 function Rating({ value }) {
   return <span aria-label={`${value} out of 5 stars`} className="tw-font-medium tw-text-[var(--c-warning-ink)]">{value}/5</span>;
 }
 
 export default function ReviewsPage() {
-  const [params, setParams] = useSearchParams();
-  const search = params.get('search') || '';
-  const status = params.get('status') || '';
-  const rating = params.get('rating') || '';
-  const [searchInput, setSearchInput] = useState(search);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setParams((current) => {
-        if (searchInput.trim()) current.set('search', searchInput.trim());
-        else current.delete('search');
-        return current;
-      });
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput, setParams]);
-
-  useEffect(() => {
-    let active = true;
-    listReviews({ search, status, rating }).then((result) => {
-      if (active) setReviews(result.data);
-    }).catch((loadError) => {
-      if (active) setError(loadError.message || 'Unable to load reviews.');
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
-  }, [search, status, rating]);
-
-  const setFilter = (key, value) => {
-    setLoading(true);
-    setError('');
-    setParams((current) => {
-      if (value) current.set(key, value);
-      else current.delete(key);
-      return current;
-    });
-  };
+  const [query, setQuery] = useQueryState(QUERY);
+  const { status, rating } = query;
+  const [searchInput, setSearchInput] = useSearchInput(query.search, (search) => setQuery({ search }, { replace: true }));
+  const { data: result, error, loading, reload } = useResource(listReviews, query);
+  const reviews = result?.data ?? NO_REVIEWS;
 
   return <div className="tw-flex tw-flex-col tw-gap-5">
     <header>
@@ -59,18 +28,17 @@ export default function ReviewsPage() {
     </header>
     <Card>
       <div className="tw-flex tw-flex-wrap tw-gap-3">
-        <label className="tw-flex-1"><span className="visually-hidden">Search reviews</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => { setLoading(true); setError(''); setSearchInput(event.target.value); }} placeholder="Search product, customer, or review..." /></label>
-        <select className="form-select tw-h-11 tw-max-w-[180px]" aria-label="Filter review status" value={status} onChange={(event) => setFilter('status', event.target.value)}>
+        <label className="tw-flex-1"><span className="visually-hidden">Search reviews</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search product, customer, or review..." /></label>
+        <select className="form-select tw-h-11 tw-max-w-[180px]" aria-label="Filter review status" value={status} onChange={(event) => setQuery({ status: event.target.value })}>
           <option value="">All statuses</option>
           {Object.entries(REVIEW_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
-        <select className="form-select tw-h-11 tw-max-w-[150px]" aria-label="Filter review rating" value={rating} onChange={(event) => setFilter('rating', event.target.value)}>
+        <select className="form-select tw-h-11 tw-max-w-[150px]" aria-label="Filter review rating" value={rating} onChange={(event) => setQuery({ rating: event.target.value })}>
           <option value="">All ratings</option>
           {REVIEW_RATINGS.map((value) => <option key={value} value={value}>{value}/5</option>)}
         </select>
       </div>
-      {error && <div role="alert" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-4 tw-text-[var(--c-danger-ink)]">{error}</div>}
-      {loading ? <div role="status" aria-label="Loading reviews" className="tw-mt-5 tw-h-40 tw-animate-pulse tw-rounded tw-bg-page" /> : <div className="tw-overflow-x-auto">
+      {error ? <div className="tw-mt-4"><LoadError message="Unable to load reviews." onRetry={reload} /></div> : loading ? <LoadingBlock label="Loading reviews" className="tw-mt-5 tw-h-40" /> : <div className="tw-overflow-x-auto">
         <table className="admin-table tw-mt-5 tw-min-w-[1050px]">
           <caption className="visually-hidden">Product reviews</caption>
           <thead><tr>{['Product', 'Customer', 'Rating', 'Review', 'Submitted', 'Status'].map((heading) => <th key={heading} scope="col" className="tw-text-xs tw-uppercase tw-text-muted">{heading}</th>)}</tr></thead>

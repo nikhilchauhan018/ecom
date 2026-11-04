@@ -4,8 +4,9 @@ import Form from 'react-bootstrap/Form';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/ui/Icon';
-import { createOrder, getOrder, updateOrder } from '../../services/api/orders';
-import { ordersMock, paymentMethods } from '../../data/orders.mock';
+import { createOrder, getOrder, getOrderFormOptions, updateOrder } from '../../services/api/orders';
+import { orderErrorSentence } from './orderStatus';
+import { useResource } from '../../hooks/useResource';
 import { formatMoney } from '../../utils/formatMoney';
 import { getStoreSettings } from '../../config/settings';
 
@@ -15,13 +16,14 @@ const emptyForm = {
   customer: { id: '', name: '', email: '', phone: '' },
   items: [],
   amounts: { discount: 0, shipping: 0 },
-  paymentMethod: paymentMethods[0],
+  paymentMethod: null, // until the user picks one, the first available method is used
   paymentStatus: 'pending',
   shippingAddress: emptyAddress,
   billingAddress: emptyAddress,
   notes: [],
 };
-const products = Array.from(new Map(ordersMock.flatMap((order) => order.items).map((item) => [item.productId, item])).values());
+const NO_ITEMS = [];
+const NO_PARAMS = {};
 
 export default function OrderFormPage() {
   const { id } = useParams();
@@ -35,6 +37,11 @@ export default function OrderFormPage() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState('');
+  const { data: options } = useResource(getOrderFormOptions, NO_PARAMS);
+  const products = options?.products ?? NO_ITEMS;
+  const customers = options?.customers ?? NO_ITEMS;
+  const paymentMethods = options?.paymentMethods ?? NO_ITEMS;
+  const paymentMethod = form.paymentMethod ?? paymentMethods[0] ?? null;
 
   useEffect(() => {
     if (!editing) return undefined;
@@ -60,7 +67,7 @@ export default function OrderFormPage() {
     const tax = Math.round(subtotal * 0.18);
     return { subtotal, tax, total: subtotal - Number(form.amounts.discount || 0) + Number(form.amounts.shipping || 0) + tax };
   }, [form.amounts.discount, form.amounts.shipping, form.items]);
-  const customers = useMemo(() => Array.from(new Map(ordersMock.map((order) => [order.customer.id, order.customer])).values()), []);
+
   const matchingCustomers = customers.filter((customer) => `${customer.name} ${customer.email} ${customer.phone}`.toLowerCase().includes(customerQuery.toLowerCase()));
   const setField = (key, value) => { setDirty(true); setForm((current) => ({ ...current, [key]: value })); };
   const setCustomer = (customer) => { setField('customer', customer); setField('shippingAddress', { ...form.shippingAddress, name: customer.name }); setField('billingAddress', { ...form.billingAddress, name: customer.name }); setCustomerQuery(''); };
@@ -87,12 +94,19 @@ export default function OrderFormPage() {
     if (!form.customer.name) nextErrors.customer = 'Select or enter a customer.';
     if (!form.customer.email) nextErrors.email = 'Customer email is required.';
     if (!form.items.length) nextErrors.items = 'Add at least one product.';
+    if (!paymentMethod) nextErrors.payment = 'Payment methods are still loading. Try again in a moment.';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setSaving(true);
-    const payload = { ...form, amounts: { ...form.amounts, ...totals, total: totals.total }, currency: settings.currency, status: form.status || 'pending', createdAt: form.createdAt || new Date().toISOString(), history: form.history || [] };
-    const result = editing ? await updateOrder(id, payload) : await createOrder(payload);
-    setSaving(false);
+    const payload = { ...form, paymentMethod, amounts: { ...form.amounts, ...totals, total: totals.total }, currency: settings.currency, status: form.status || 'pending', createdAt: form.createdAt || new Date().toISOString(), history: form.history || [] };
+    let result = null;
+    try {
+      result = editing ? await updateOrder(id, payload) : await createOrder(payload);
+    } catch (saveError) {
+      setErrors({ customer: saveError?.code ? orderErrorSentence(saveError.code) : 'Unable to save the order.' });
+    } finally {
+      setSaving(false);
+    }
     if (result) { setDirty(false); setMessage('Order saved.'); window.setTimeout(() => navigate(`/ecommerce/orders/${result.id}`), 500); }
   };
   const cancel = () => {
@@ -110,7 +124,7 @@ export default function OrderFormPage() {
         <Card title="Products"><div className="tw-flex tw-flex-wrap tw-gap-2"><Form.Select aria-label="Select product" value={productId} onChange={(event) => setProductId(event.target.value)}><option value="">Choose product</option>{products.map((product) => <option key={product.productId} value={product.productId}>{product.name} · {product.variant} ({formatMoney(product.unitPrice)})</option>)}</Form.Select><Button type="button" variant="brandOutline" onClick={addProduct}><Icon name="plus" size={16} /> Add product</Button></div>{errors.items && <p className="tw-mt-2 tw-text-danger">{errors.items}</p>}<div className="tw-mt-4 tw-space-y-2">{form.items.map((item) => <div key={item.productId} className="tw-grid tw-items-center tw-gap-2 tw-border-0 tw-border-t tw-border-solid tw-border-hair tw-py-3 sm:tw-grid-cols-[1fr_90px_100px_auto]"><div><strong>{item.name}</strong><span className="tw-block tw-text-sm tw-text-muted">{item.variant}</span></div><Form.Control aria-label={`Quantity for ${item.name}`} type="number" min="1" value={item.qty} onChange={(event) => updateQuantity(item, event.target.value)} /><span>{formatMoney(item.total)}</span><button type="button" aria-label={`Remove ${item.name}`} onClick={() => removeProduct(item.productId)} className="tw-border-0 tw-bg-transparent tw-text-danger">Remove</button></div>)}</div></Card>
         <Card title="Addresses"><AddressFields title="Shipping address" value={form.shippingAddress} onChange={(value) => setField('shippingAddress', value)} /><div className="tw-mt-5"><AddressFields title="Billing address" value={form.billingAddress} onChange={(value) => setField('billingAddress', value)} /></div></Card>
       </div>
-      <div className="tw-flex tw-flex-col tw-gap-5"><Card title="Totals"><Total label="Subtotal" value={totals.subtotal} /><Total label="Discount" value={-Number(form.amounts.discount || 0)} /><Total label="Shipping" value={Number(form.amounts.shipping || 0)} /><Total label={settings.taxName} value={totals.tax} /><Total label="Grand total" value={totals.total} strong /><div className="tw-mt-4 tw-grid tw-gap-3"><Form.Group><Form.Label>Discount</Form.Label><Form.Control type="number" min="0" value={form.amounts.discount} onChange={(event) => setField('amounts', { ...form.amounts, discount: event.target.value })} /></Form.Group><Form.Group><Form.Label>Shipping charge</Form.Label><Form.Control type="number" min="0" value={form.amounts.shipping} onChange={(event) => setField('amounts', { ...form.amounts, shipping: event.target.value })} /></Form.Group></div></Card><Card title="Payment"><Form.Group><Form.Label>Payment method</Form.Label><Form.Select value={form.paymentMethod.code} onChange={(event) => setField('paymentMethod', paymentMethods.find((method) => method.code === event.target.value))}>{paymentMethods.map((method) => <option key={method.code} value={method.code}>{method.label}</option>)}</Form.Select></Form.Group><Form.Group className="tw-mt-3"><Form.Label>Payment status</Form.Label><Form.Select value={form.paymentStatus} onChange={(event) => setField('paymentStatus', event.target.value)}><option value="pending">Pending</option><option value="completed">Completed</option><option value="failed">Failed</option></Form.Select></Form.Group></Card><Card title="Notes"><Form.Label htmlFor="order-notes">Internal notes</Form.Label><Form.Control id="order-notes" as="textarea" rows={4} value={form.notes[0]?.text || ''} onChange={(event) => setField('notes', [{ id: form.notes[0]?.id || `note-${Date.now()}`, text: event.target.value, by: 'Owner', at: new Date().toISOString() }])} /></Card></div>
+      <div className="tw-flex tw-flex-col tw-gap-5"><Card title="Totals"><Total label="Subtotal" value={totals.subtotal} /><Total label="Discount" value={-Number(form.amounts.discount || 0)} /><Total label="Shipping" value={Number(form.amounts.shipping || 0)} /><Total label={settings.taxName} value={totals.tax} /><Total label="Grand total" value={totals.total} strong /><div className="tw-mt-4 tw-grid tw-gap-3"><Form.Group><Form.Label>Discount</Form.Label><Form.Control type="number" min="0" value={form.amounts.discount} onChange={(event) => setField('amounts', { ...form.amounts, discount: event.target.value })} /></Form.Group><Form.Group><Form.Label>Shipping charge</Form.Label><Form.Control type="number" min="0" value={form.amounts.shipping} onChange={(event) => setField('amounts', { ...form.amounts, shipping: event.target.value })} /></Form.Group></div></Card><Card title="Payment"><Form.Group><Form.Label>Payment method</Form.Label><Form.Select value={paymentMethod?.code ?? ''} onChange={(event) => setField('paymentMethod', paymentMethods.find((method) => method.code === event.target.value))}>{paymentMethods.map((method) => <option key={method.code} value={method.code}>{method.label}</option>)}</Form.Select>{errors.payment && <p role="alert" className="tw-mt-2 tw-text-danger">{errors.payment}</p>}</Form.Group><Form.Group className="tw-mt-3"><Form.Label>Payment status</Form.Label><Form.Select value={form.paymentStatus} onChange={(event) => setField('paymentStatus', event.target.value)}><option value="pending">Pending</option><option value="completed">Completed</option><option value="failed">Failed</option></Form.Select></Form.Group></Card><Card title="Notes"><Form.Label htmlFor="order-notes">Internal notes</Form.Label><Form.Control id="order-notes" as="textarea" rows={4} value={form.notes[0]?.text || ''} onChange={(event) => setField('notes', [{ id: form.notes[0]?.id || `note-${Date.now()}`, text: event.target.value, by: 'Owner', at: new Date().toISOString() }])} /></Card></div>
     </div>
   </form>;
 }
