@@ -1,69 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Pill from '../../components/ui/Pill';
 import Button from '../../components/ui/Button';
+import { LoadError, LoadingBlock } from '../../components/ui/AsyncState';
 import { formatMoney } from '../../utils/formatMoney';
 import { deleteInvoice, listInvoices } from '../../services/api/invoices';
+import { useResource } from '../../hooks/useResource';
+import { useQueryState } from '../../hooks/useQueryState';
+import { useSearchInput } from '../../hooks/useSearchInput';
 import { invoiceStatusLabel, invoiceStatusTone, INVOICE_STATUS_LABELS } from './invoiceUtils';
 import Icon from '../../components/ui/Icon';
 
+const NO_INVOICES = [];
+const QUERY = { search: '', status: '' };
+
 export default function InvoicesPage() {
-  const [params, setParams] = useSearchParams();
-  const search = params.get('search') || '';
-  const status = params.get('status') || '';
-  const [searchInput, setSearchInput] = useState(search);
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [query, setQuery] = useQueryState(QUERY);
+  const { status } = query;
+  const [searchInput, setSearchInput] = useSearchInput(query.search, (search) => setQuery({ search }, { replace: true }));
+  const { data: result, error, loading, reload } = useResource(listInvoices, query);
+  const invoices = result?.data ?? NO_INVOICES;
   const [deletingId, setDeletingId] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setParams((current) => {
-        if (searchInput.trim()) current.set('search', searchInput.trim());
-        else current.delete('search');
-        return current;
-      });
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchInput, setParams]);
-
-  useEffect(() => {
-    let active = true;
-    listInvoices({ search, status }).then((result) => {
-      if (active) setInvoices(result.data);
-    }).catch((loadError) => {
-      if (active) setError(loadError.message || 'Unable to load invoices.');
-    }).finally(() => {
-      if (active) setLoading(false);
-    });
-    return () => { active = false; };
-  }, [search, status]);
-
-  const setFilter = (key, value) => {
-    setLoading(true);
-    setError('');
-    setParams((current) => {
-      if (value) current.set(key, value);
-      else current.delete(key);
-      return current;
-    });
-  };
+  const [actionError, setActionError] = useState('');
 
   const removeInvoice = async (id) => {
     if (!window.confirm(`Delete invoice ${id}?`)) return;
     setDeletingId(id);
-    setError('');
+    setActionError('');
     try {
-      const result = await deleteInvoice(id);
-      if (!result.deleted) {
-        setError('Unable to delete invoice.');
-        return;
-      }
-      setInvoices((current) => current.filter((invoice) => invoice.id !== id));
+      const outcome = await deleteInvoice(id);
+      if (outcome.deleted) reload();
+      else setActionError('Unable to delete invoice.');
     } catch (deleteError) {
-      setError(deleteError.message || 'Unable to delete invoice.');
+      setActionError(deleteError.message || 'Unable to delete invoice.');
     } finally {
       setDeletingId('');
     }
@@ -76,14 +46,14 @@ export default function InvoicesPage() {
     </header>
     <Card>
       <div className="tw-flex tw-flex-wrap tw-gap-3 print-hidden">
-        <label className="tw-flex-1"><span className="visually-hidden">Search invoices</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => { setLoading(true); setError(''); setSearchInput(event.target.value); }} placeholder="Search invoice, order, or customer..." /></label>
-        <select className="form-select tw-h-11 tw-max-w-[180px]" aria-label="Filter invoice status" value={status} onChange={(event) => setFilter('status', event.target.value)}>
+        <label className="tw-flex-1"><span className="visually-hidden">Search invoices</span><input className="form-control tw-h-11" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search invoice, order, or customer..." /></label>
+        <select className="form-select tw-h-11 tw-max-w-[180px]" aria-label="Filter invoice status" value={status} onChange={(event) => setQuery({ status: event.target.value })}>
           <option value="">All statuses</option>
           {Object.entries(INVOICE_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </div>
-      {error && <div role="alert" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-4 tw-text-[var(--c-danger-ink)]">{error}</div>}
-      {loading ? <div role="status" aria-label="Loading invoices" className="tw-mt-5 tw-h-40 tw-animate-pulse tw-rounded tw-bg-page" /> : <div className="tw-overflow-x-auto">
+      {actionError && <div role="alert" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-4 tw-text-[var(--c-danger-ink)]">{actionError}</div>}
+      {error ? <div className="tw-mt-4"><LoadError message="Unable to load invoices." onRetry={reload} /></div> : loading ? <LoadingBlock label="Loading invoices" className="tw-mt-5 tw-h-40" /> : <div className="tw-overflow-x-auto">
         <table className="admin-table tw-mt-5 tw-min-w-[950px]">
           <caption className="visually-hidden">Invoices</caption>
           <thead><tr>{['Invoice', 'Order', 'Customer', 'Issued', 'Items', 'Amount', 'Status', 'Operations'].map((heading) => <th key={heading} scope="col" className="tw-text-xs tw-uppercase tw-text-muted">{heading}</th>)}</tr></thead>

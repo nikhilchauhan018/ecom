@@ -97,6 +97,29 @@ Numbers are sensible starting points to tune with real traffic, not fixed requir
       `CloudFront-Viewer-Country`) or a GeoIP database. Used only to pre-select the phone country code.
       Never use it for access control, and never call a third-party IP API from the browser.
 
-## 5. Planned (from TASKS.md, not final)
+## 5. Admin list endpoints (from admin task A2)
+The admin list screens already send server-style queries through `admin/services/api/*.js`. The real endpoints must match:
+- [ ] `GET /admin/orders?page&pageSize&search&sort&order&status&paymentStatus&paymentMethod&dateFrom&dateTo&amountMin&amountMax&customer`
+      => `200 { data: [...], meta: { page, pageSize, total, totalPages } }`.
+- [ ] Filtering, search, sorting and pagination happen **in the database**, never on the full table in memory.
+- [ ] `sort` is checked against a whitelist of indexed columns (reject others with 422), `pageSize` has a hard maximum (e.g. 100).
+- [ ] A page past the end returns an empty `data` with the real `meta.totalPages` (the client then jumps to the last page).
+- [ ] Every filter and sort column has a database index.
+- [ ] The client cancels superseded requests: the server must be safe to receive many quick, abandoned queries (rate limit by user, not by IP only).
+- [ ] Bulk endpoints return a per-item result `{ updated|deleted: [ids], failed: [{ id, code }] }`, max 200 ids per request,
+      and re-check the status rules on the server (see `features/orders/orderStatus.js`). Each item is atomic; one failure must not roll back the others.
+
+## 6. Incomplete orders (abandoned checkouts) — admin task A4
+- [ ] `GET /admin/incomplete-orders?page&pageSize&search&sort&order&dateFrom&dateTo&amountMin&amountMax` => `200 { data, meta }`,
+      same rules as section 5 (database-level filtering, sort whitelist `id|customer|amount|createdAt`, index on each, max page size 100).
+- [ ] `GET /admin/incomplete-orders/:id` => the record with its cart lines, or a plain 404.
+- [ ] `POST /admin/incomplete-orders/bulk-delete { ids }` => `{ deleted: [ids], failed: [{ id, code: 'not_found' }] }`, 1 to 200 ids
+      (422 for an empty or oversized list), each id handled on its own.
+- [ ] A record is created when a checkout starts and is removed (or marked converted) when the order is paid. Guests have no name or email yet:
+      those fields are empty, never null-pointer-prone placeholders. The amount is calculated on the server from the cart lines, never trusted from the browser.
+- [ ] Contains personal data (name, email): admin-only, write every delete to the audit log, and add a retention job (for example purge after 90 days).
+- [ ] Optional later: "send a reminder" needs the customer's consent for marketing messages and an unsubscribe link.
+
+## 7. Planned (from TASKS.md, not final)
 - Admin-controlled login method (phone / email / both): settings read by the client as `auth.methods`.
   Contract and admin write endpoint to be written in task T2.

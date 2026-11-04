@@ -1,4 +1,12 @@
-import { ordersMock } from '../../data/orders.mock';
+import { ordersMock, paymentMethods } from '../../data/orders.mock';
+import { deriveFormOptions } from '../../features/orders/orderFormOptions';
+import {
+  OrderError,
+  bulkChangeStatus,
+  changeStatus,
+  removeOrders,
+  stripProtectedFields,
+} from '../../features/orders/orderActions';
 
 const delay = (value) => new Promise((resolve) => setTimeout(() => resolve(value), 120));
 
@@ -34,6 +42,16 @@ export async function listOrders({
   });
 }
 
+/** Payment methods an order can use, as `{ code, label }[]`. */
+export async function listPaymentMethods() {
+  return delay(paymentMethods.map((method) => ({ ...method })));
+}
+
+/** Everything the create/edit order form needs to fill its pickers: `{ paymentMethods, customers, products }`. */
+export async function getOrderFormOptions() {
+  return delay({ paymentMethods: paymentMethods.map((method) => ({ ...method })), ...deriveFormOptions(ordersMock) });
+}
+
 export async function getOrder(id) {
   return delay(ordersMock.find((order) => order.id === String(id)) ?? null);
 }
@@ -44,35 +62,53 @@ export async function getOrderCounts() {
 }
 
 export async function createOrder(payload) {
-  const order = { ...payload, id: `draft-${Date.now()}`, number: `ORD-${Date.now()}` };
+  const customer = payload?.customer;
+  if (!customer?.name || !customer?.email || !Array.isArray(payload?.items) || payload.items.length === 0) {
+    throw new OrderError('invalid_order');
+  }
+  // A new order always starts as pending with a fresh history, whatever the client sent.
+  const order = {
+    ...stripProtectedFields(payload),
+    id: `draft-${Date.now()}`,
+    number: `ORD-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    status: 'pending',
+    history: [],
+  };
   ordersMock.unshift(order);
   return delay(order);
 }
 
+/** Generic edit. Identity and workflow fields are ignored: use updateOrderStatus to change status. */
 export async function updateOrder(id, payload) {
   const current = ordersMock.find((order) => order.id === String(id));
   if (!current) return delay(null);
-  Object.assign(current, payload);
+  Object.assign(current, stripProtectedFields(payload));
   return delay(current);
 }
 
+/** Resolves to the updated order, or null when the order does not exist. Rejects with OrderError for rule violations. */
 export async function updateOrderStatus(id, status, options = {}) {
-  const current = ordersMock.find((order) => order.id === String(id));
-  if (!current) return delay(null);
-  const history = [...current.history, { status, note: options.note ?? '', by: 'Owner', at: new Date().toISOString() }];
-  return updateOrder(id, { status, history });
+  const result = changeStatus(ordersMock, id, status, { note: options.note });
+  if (result.ok) return delay(result.order);
+  if (result.code === 'not_found') return delay(null);
+  throw new OrderError(result.code);
 }
 
+/** Per-order outcome: `{ updated: string[], failed: { id, code }[] }`. Rejects only for a bad request as a whole. */
 export async function bulkUpdateStatus(ids, status) {
-  return delay({ updated: ids.length, status });
+  return delay(bulkChangeStatus(ordersMock, ids, status));
 }
 
+/** `{ deleted: boolean, code?: string }` */
 export async function deleteOrder(id) {
-  return delay({ deleted: Boolean(id) });
+  const { deleted, failed } = removeOrders(ordersMock, [id]);
+  return delay(deleted.length ? { deleted: true } : { deleted: false, code: failed[0].code });
 }
 
+/** Per-order outcome: `{ deleted: string[], failed: { id, code }[] }` */
 export async function bulkDelete(ids) {
-  return delay({ deleted: ids.length });
+  return delay(removeOrders(ordersMock, ids));
 }
 
 export async function refundOrder(id, payload) {
