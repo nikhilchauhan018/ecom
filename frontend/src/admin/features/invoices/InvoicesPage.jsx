@@ -9,11 +9,13 @@ import { deleteInvoice, listInvoices } from '../../services/api/invoices';
 import { useResource } from '../../hooks/useResource';
 import { useQueryState } from '../../hooks/useQueryState';
 import { useSearchInput } from '../../hooks/useSearchInput';
-import { invoiceStatusLabel, invoiceStatusTone, INVOICE_STATUS_LABELS } from './invoiceUtils';
+import { invoiceDateLabel, invoiceStatusLabel, invoiceStatusTone, INVOICE_STATUS_LABELS } from './invoiceUtils';
 import Icon from '../../components/ui/Icon';
+import { getStoreSettings } from '../../config/settings';
 
 const NO_INVOICES = [];
 const QUERY = { search: '', status: '' };
+const settings = getStoreSettings();
 
 export default function InvoicesPage() {
   const [query, setQuery] = useQueryState(QUERY);
@@ -23,15 +25,22 @@ export default function InvoicesPage() {
   const invoices = result?.data ?? NO_INVOICES;
   const [deletingId, setDeletingId] = useState('');
   const [actionError, setActionError] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
+  const hasFilters = Boolean(query.search || status);
 
   const removeInvoice = async (id) => {
     if (!window.confirm(`Delete invoice ${id}?`)) return;
     setDeletingId(id);
     setActionError('');
+    setActionMessage('');
     try {
       const outcome = await deleteInvoice(id);
-      if (outcome.deleted) reload();
-      else setActionError('Unable to delete invoice.');
+      if (!outcome.deleted) {
+        setActionError('Unable to delete invoice.');
+        return;
+      }
+      setActionMessage(`Invoice ${id} deleted.`);
+      reload();
     } catch (deleteError) {
       setActionError(deleteError.message || 'Unable to delete invoice.');
     } finally {
@@ -39,9 +48,14 @@ export default function InvoicesPage() {
     }
   };
 
+  const clearFilters = () => {
+    setSearchInput('');
+    setQuery(QUERY);
+  };
+
   return <div className="tw-flex tw-flex-col tw-gap-5">
     <header className="tw-flex tw-flex-wrap tw-items-end tw-justify-between tw-gap-3">
-      <div><div className="tw-text-xs tw-uppercase tw-tracking-[0.12em]"><a href="/" className="link-brand">Dashboard</a><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Ecommerce</span></div><h1 className="tw-mt-2 tw-text-2xl tw-font-semibold">Invoices</h1></div>
+      <div><div className="tw-text-xs tw-uppercase tw-tracking-[0.12em]"><Link to="/ecommerce" className="link-brand">Dashboard</Link><span className="tw-mx-2 tw-text-muted">/</span><span className="tw-text-muted">Ecommerce</span></div><h1 className="tw-mt-2 tw-text-2xl tw-font-semibold">Invoices</h1><p className="tw-mt-1 tw-text-sm tw-text-muted">{result?.meta?.total ?? invoices.length} invoice{invoices.length === 1 ? '' : 's'} found</p></div>
       <Button variant="brandOutline" className="print-hidden" onClick={() => window.print()}>Print list</Button>
     </header>
     <Card>
@@ -53,6 +67,7 @@ export default function InvoicesPage() {
         </select>
       </div>
       {actionError && <div role="alert" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-danger-bg)] tw-p-4 tw-text-[var(--c-danger-ink)]">{actionError}</div>}
+      {actionMessage && <div role="status" className="tw-mt-4 tw-rounded-lg tw-bg-[var(--c-success-bg)] tw-p-4 tw-text-[var(--c-success-ink)]">{actionMessage}</div>}
       {error ? <div className="tw-mt-4"><LoadError message="Unable to load invoices." onRetry={reload} /></div> : loading ? <LoadingBlock label="Loading invoices" className="tw-mt-5 tw-h-40" /> : <div className="tw-overflow-x-auto">
         <table className="admin-table tw-mt-5 tw-min-w-[950px]">
           <caption className="visually-hidden">Invoices</caption>
@@ -61,7 +76,7 @@ export default function InvoicesPage() {
             <td className="tw-font-medium">{invoice.id}</td>
             <td>{invoice.orderNumber}</td>
             <td><div>{invoice.customer.name}</div><div className="tw-text-xs tw-text-muted">{invoice.customer.email}</div></td>
-            <td>{new Date(invoice.issueDate).toLocaleDateString()}</td>
+            <td>{invoiceDateLabel(invoice.issueDate, settings.locale)}</td>
             <td>{invoice.itemCount}</td>
             <td>{formatMoney(invoice.amounts.total)}</td>
             <td><Pill tone={invoiceStatusTone(invoice.status)}>{invoiceStatusLabel(invoice.status)}</Pill></td>
@@ -71,7 +86,7 @@ export default function InvoicesPage() {
             </div></td>
           </tr>)}</tbody>
         </table>
-        {!invoices.length && <p className="tw-py-8 tw-text-center tw-text-muted">No invoices found.</p>}
+        {!invoices.length && <div className="tw-py-8 tw-text-center"><p className="tw-text-muted">{hasFilters ? 'No invoices match your search.' : 'No invoices found.'}</p>{hasFilters && <button type="button" className="tw-mt-3 tw-text-brand tw-underline" onClick={clearFilters}>Clear filters</button>}</div>}
       </div>}
     </Card>
   </div>;

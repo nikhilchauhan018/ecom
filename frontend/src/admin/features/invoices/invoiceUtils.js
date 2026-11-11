@@ -13,9 +13,20 @@ export function invoiceStatusTone(status) {
 }
 
 export function invoiceFileName(invoice) {
-  return `${invoice.id}-${invoice.orderNumber}.pdf`;
+  const safePart = (value) => String(value ?? '').trim().replace(/[\\/:*?"<>|]+/g, '-');
+  return `${safePart(invoice.id) || 'invoice'}-${safePart(invoice.orderNumber) || 'order'}.pdf`;
+}
+
+export function invoiceDateLabel(value, locale = 'en-IN') {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(locale).format(date);
 }
 
 export function invoiceAddressLines(address = {}) {
-  return [address.name, address.line1, [address.city, address.region].filter(Boolean).join(', '), [address.postalCode, address.country].filter(Boolean).join(', ')].filter(Boolean);
+  return [
+    address.name,
+    address.line1,
+    [address.city, address.region].filter(Boolean).join(', '),
+    [address.postalCode, address.country].filter(Boolean).join(', '),
+  ].filter(Boolean);
 }
