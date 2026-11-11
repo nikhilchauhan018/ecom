@@ -1,4 +1,5 @@
 import Form from 'react-bootstrap/Form';
+import { useNavigate } from 'react-router-dom';
 import Icon from '../ui/Icon';
 import { site } from '../../config/site';
 
@@ -15,6 +16,8 @@ function IconButton({ icon, label, count, hideOnPhone, onClick }) {
 }
 
 export default function Topbar({ onToggleNav, theme, onToggleTheme, searchRef }) {
+  const navigate = useNavigate();
+
   return (
     <header className="tw-sticky tw-top-0 tw-z-[5] tw-flex tw-h-16 tw-items-center tw-gap-3 tw-bg-topbar tw-px-5 tw-text-white">
       <IconButton icon="menu" label="Toggle menu" onClick={onToggleNav} />
@@ -35,7 +38,7 @@ export default function Topbar({ onToggleNav, theme, onToggleTheme, searchRef })
       </a>
 
       <IconButton icon={theme === 'dark' ? 'sun' : 'moon'} label={theme === 'dark' ? 'Light mode' : 'Dark mode'} onClick={onToggleTheme} />
-      <IconButton icon="bell" label="Notifications, 1 unread" count={1} />
+      <IconButton icon="bell" label="Notifications, 2 unread" count={2} onClick={() => navigate('/ecommerce/notifications')} />
       <IconButton icon="mail" label="Messages, 10 unread" count={10} hideOnPhone />
       <IconButton icon="cart" label="New orders, 48" count={48} hideOnPhone />
 

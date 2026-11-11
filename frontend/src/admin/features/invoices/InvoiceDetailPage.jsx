@@ -6,7 +6,7 @@ import Icon from '../../components/ui/Icon';
 import { formatMoney } from '../../utils/formatMoney';
 import { getStoreSettings } from '../../config/settings';
 import { getInvoice } from '../../services/api/invoices';
-import { invoiceAddressLines, invoiceFileName, invoiceStatusLabel, invoiceStatusTone } from './invoiceUtils';
+import { invoiceAddressLines, invoiceDateLabel, invoiceFileName, invoiceStatusLabel, invoiceStatusTone } from './invoiceUtils';
 import Pill from '../../components/ui/Pill';
 
 const settings = getStoreSettings();
@@ -63,7 +63,7 @@ export default function InvoiceDetailPage() {
       <div className="tw-grid tw-gap-8 md:tw-grid-cols-3">
         <Address title="Billing address" address={invoice.billingAddress} />
         <Address title="Shipping address" address={invoice.shippingAddress} />
-        <div><h2 className="tw-text-sm tw-font-semibold tw-uppercase tw-tracking-wide tw-text-muted">Invoice details</h2><p className="tw-mt-2">Issue date: {new Date(invoice.issueDate).toLocaleDateString(settings.locale)}</p><p className="tw-mt-1">Payment: {invoice.paymentMethod.label}</p><div className="tw-mt-2"><Pill tone={invoiceStatusTone(invoice.status)}>{invoiceStatusLabel(invoice.status)}</Pill></div></div>
+        <div><h2 className="tw-text-sm tw-font-semibold tw-uppercase tw-tracking-wide tw-text-muted">Invoice details</h2><p className="tw-mt-2">Issue date: {invoiceDateLabel(invoice.issueDate, settings.locale)}</p><p className="tw-mt-1">Payment: {invoice.paymentMethod.label}</p><div className="tw-mt-2"><Pill tone={invoiceStatusTone(invoice.status)}>{invoiceStatusLabel(invoice.status)}</Pill></div></div>
       </div>
       <div className="tw-mt-10 tw-overflow-x-auto"><table className="admin-table tw-min-w-[700px]"><caption className="visually-hidden">Invoice line items</caption><thead><tr>{['#', 'Product', 'Amount', 'Quantity', 'Total'].map((heading) => <th key={heading} scope="col" className="tw-text-xs tw-uppercase tw-text-muted">{heading}</th>)}</tr></thead><tbody>{invoice.items.map((item, index) => <tr key={item.id}><td>{index + 1}</td><td><div className="tw-font-medium">{item.name}</div><div className="tw-text-xs tw-text-muted">{item.variant} · {item.sku}</div></td><td>{formatMoney(item.unitPrice)}</td><td>{item.qty}</td><td>{formatMoney(item.total)}</td></tr>)}</tbody></table></div>
       <div className="tw-mt-6 tw-flex tw-justify-end"><div className="tw-w-full tw-max-w-sm tw-space-y-3"><div className="tw-flex tw-justify-between"><span className="tw-text-muted">Subtotal</span><span>{formatMoney(invoice.amounts.subtotal)}</span></div><div className="tw-flex tw-justify-between"><span className="tw-text-muted">Discount</span><span>- {formatMoney(invoice.amounts.discount)}</span></div><div className="tw-flex tw-justify-between"><span className="tw-text-muted">Shipping</span><span>{formatMoney(invoice.amounts.shipping)}</span></div><div className="tw-flex tw-justify-between"><span className="tw-text-muted">{settings.taxName}</span><span>{formatMoney(invoice.amounts.tax)}</span></div><div className="tw-flex tw-justify-between tw-border-0 tw-border-t tw-border-solid tw-border-hair tw-pt-3 tw-text-lg tw-font-semibold"><span>Total</span><span>{formatMoney(invoice.amounts.total)}</span></div></div></div>
