@@ -20,7 +20,7 @@ export const navItems = [
       { label: 'Notifications', to: '/ecommerce/notifications' },
     ],
   },
-  { label: 'Pages', icon: 'page', to: '/pages' },
+  { label: 'Pages', icon: 'page', to: '/ecommerce/pages' },
   { label: 'Blog', icon: 'list', to: '/blog', chevron: true },
   { label: 'Payments', icon: 'card', to: '/payments', chevron: true },
   { label: 'Ads', icon: 'megaphone', to: '/ads', chevron: true },

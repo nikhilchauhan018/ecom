@@ -24,6 +24,9 @@ const IncompleteOrdersPage = lazy(() => import('../features/incomplete-orders/In
 const IncompleteOrderDetailPage = lazy(() => import('../features/incomplete-orders/IncompleteOrderDetailPage'));
 const ReportPage = lazy(() => import('../features/reports/ReportPage'));
 const NotificationsPage = lazy(() => import('../features/notifications/NotificationsPage'));
+const PagesPage = lazy(() =>
+  import('../pages/components/PagesModule').then(({ PagesModule }) => ({ default: PagesModule })),
+);
 
 export default function AppRoutes() {
   return (
@@ -56,6 +59,7 @@ export default function AppRoutes() {
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="shipping" element={<ShippingPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="pages" element={<PagesPage />} />
           <Route path="*" element={<ComingSoonPage />} />
         </Route>
       </Routes>
