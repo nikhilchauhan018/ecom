@@ -27,6 +27,9 @@ const NotificationsPage = lazy(() => import('../features/notifications/Notificat
 const PagesPage = lazy(() =>
   import('../pages/components/PagesModule').then(({ PagesModule }) => ({ default: PagesModule })),
 );
+const BlogPage = lazy(() =>
+  import('../../client/blog').then(({ BlogModule }) => ({ default: BlogModule })),
+);
 
 export default function AppRoutes() {
   return (
@@ -60,6 +63,10 @@ export default function AppRoutes() {
           <Route path="shipping" element={<ShippingPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="pages" element={<PagesPage />} />
+          <Route path="blog" element={<BlogPage section="posts" />} />
+          <Route path="blog/posts" element={<BlogPage section="posts" />} />
+          <Route path="blog/categories" element={<BlogPage section="categories" />} />
+          <Route path="blog/tags" element={<BlogPage section="tags" />} />
           <Route path="*" element={<ComingSoonPage />} />
         </Route>
       </Routes>
