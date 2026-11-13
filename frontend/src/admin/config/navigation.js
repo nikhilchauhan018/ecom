@@ -21,7 +21,14 @@ export const navItems = [
     ],
   },
   { label: 'Pages', icon: 'page', to: '/ecommerce/pages' },
-  { label: 'Blog', icon: 'list', to: '/blog', chevron: true },
+  {
+    label: 'Blog', icon: 'list',
+    children: [
+      { label: 'Posts', to: '/ecommerce/blog/posts' },
+      { label: 'Categories', to: '/ecommerce/blog/categories' },
+      { label: 'Tags', to: '/ecommerce/blog/tags' },
+    ],
+  },
   { label: 'Payments', icon: 'card', to: '/payments', chevron: true },
   { label: 'Ads', icon: 'megaphone', to: '/ads', chevron: true },
   { label: 'Contact', icon: 'mail', to: '/contact', badge: 56, chevron: true },
